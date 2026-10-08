@@ -1,3 +1,10 @@
+# script used to remove PII
+0_cleaning.qmd
+
+# Entire data folder
+/data
+*/data
+
 # History files
 .Rhistory
 .Rapp.history
