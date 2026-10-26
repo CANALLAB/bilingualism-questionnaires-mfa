@@ -12,8 +12,7 @@ library(readr)
 library(dplyr)
 library(tidyverse)
 
-# set wd to the root of the git repository on your computer
-setwd("~/repos/bilingualism-questionnaires-mfa/")
+# NOTE: for the paths below to work, you must set your working directory to the root of the git repository (i.e., where this file lives) and have a data folder in this location
 ```
 
 # Clean data step-by-step
@@ -191,7 +190,7 @@ leapq_na_corrected[leapq_5_is_na][(leapq_na_corrected[leapq_5_is_na]) == 5] <- N
 write_csv(leapq_na_corrected, "data/questionnaires/3_NA_corrected/leapq_3_NA_corrected.csv")
 ```
 
-### LHQ 
+### LHQ
 
 For the LHQ, unchecked checkboxes should be 0 (i.e., false) instead of NA for questions about L2 learning method.
 

@@ -9,6 +9,9 @@ editor: visual
 ```{r}
 
 library(readr)
+library(psych)
+
+# NOTE: for the paths below to work, you must set your working directory to the root of the git repository (i.e., where this file lives) and have a data folder in this location
 ```
 
 # L1 breakdown

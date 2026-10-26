@@ -28,6 +28,8 @@ library(ggrepel)
 library(heatmap3)
 library(scales)
 library(RcmdrMisc)
+
+# NOTE: for the paths below to work, you must set your working directory to the root of the git repository (i.e., where this file lives) and have a data folder in this location
 ```
 
 # Correlations
@@ -121,16 +123,16 @@ describe(l2_speaking_data)
 
 ```{r}
 
-ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = lsbq)) +
+ggplot(l2_speaking_data, aes(x = "", y = lsbq)) +
   geom_violin()
 
-ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = leapq)) +
+ggplot(l2_speaking_data, aes(x = "", y = leapq)) +
   geom_violin()
 
-ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = lhq)) +
+ggplot(l2_speaking_data, aes(x = "", y = lhq)) +
   geom_violin()
 
-ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = blp)) +
+ggplot(l2_speaking_data, aes(x = "", y = blp)) +
   geom_violin()
 
 ```
@@ -298,71 +300,6 @@ ggplot(merged_r_and_p, aes(x = Var1, y = Var2, fill = r)) +
                                  size = 9),
       axis.title = element_blank()
   )
-
-
-
-```
-
-### Remove items with xxxxx
-
-```{r}
-
-cols_to_remove <- c("blp_L1_use_family",
-                    )
-
-# remove bsq items that are really about mixing
-use_cols_2 <- use_cols[use_cols != "bsq_use_l1_in_l2"]
-use_cols_2 <- use_cols_2[use_cols_2 != "bsq_use_l2_in_l1"]
-# remove beq item that is really about utility (usefulness, not use)
-use_cols_2 <- use_cols_2[use_cols_2 != "beq_L2_useful_subjective"]
-# remove L1 usage items
-use_cols_2 <- use_cols_2[use_cols_2 != "blp_L1_use_family"]
-use_cols_2 <- use_cols_2[use_cols_2 != "blp_L1_use_friends"] 
-use_cols_2 <- use_cols_2[use_cols_2 != "blp_L1_use_school_work"]
-use_cols_2 <- use_cols_2[use_cols_2 != "lhq_percent_daily_use_1"] 
-use_cols_2 <- use_cols_2[use_cols_2 != "lhq_L1_use_tv_radio"] 
-use_cols_2 <- use_cols_2[use_cols_2 != "lhq_L1_use_communicating"] 
-use_cols_2 <- use_cols_2[use_cols_2 != "lhq_L1_use_reading"]
-
-usage_data_for_corr_2 <- data_to_analyze_for_correlations %>%
-  select(all_of(use_cols_2))
-usage_cormat_2 <- rcorr(as.matrix(usage_data_for_corr_2), type="pearson")
-
-write_csv(data.frame(usage_cormat_2$r), "data/analysis/correlations/usage/cormat_usage_2_r.csv")
-write_csv(data.frame(usage_cormat_2$n), "data/analysis/correlations/usage/cormat_usage_2_n.csv")
-write_csv(data.frame(usage_cormat_2$P), "data/analysis/correlations/usage/cormat_usage_2_P_uncorrected.csv")
-
-### 3: final version
-
-use_cols_3 <- use_cols_2[use_cols_2 != "lsbq_use_during_infancy"]
-use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_during_preschool"] 
-use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_during_primaryschool"]
-use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_religion"] 
-use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_praying"]
-
-usage_data_for_corr_3 <- data_to_analyze_for_correlations %>%
-  select(all_of(use_cols_3))
-usage_cormat_3 <- rcorr(as.matrix(usage_data_for_corr_3), type="pearson")
-
-
-#write_csv(data.frame(usage_cormat_3$r), "table_data/cormat_usage_3_r.csv")
-#write_csv(data.frame(usage_cormat_3$n), "table_data/cormat_usage_3_n.csv")
-#write_csv(data.frame(usage_cormat_3$P), "table_data/cormat_usage_3_P.csv")
-
-rmat_df <- data.frame(usage_cormat_2$r)
-pmat_df <- data.frame(usage_cormat_2$P)
-
-# adjusted
-usage_cormat_adjusted <- p.adjust(usage_cormat_3$P, method="bonferroni")
-
-count_0 <- sum(usage_cormat_adjusted == 0, na.rm=TRUE)
-count_sig <- sum(usage_cormat_adjusted < 0.001, na.rm=TRUE)
-```
-
-### Plot again
-
-```{r}
-
 
 ```
 
