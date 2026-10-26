@@ -343,7 +343,7 @@ mfa_results <- MFA(mfa_input,
                name.group= c("BDS", "BEQ", "BLP", "BSwQ", "LEAP-Q", "LHQ", "LSBQ"),
                graph = TRUE)
 
-#write_rds(mfa_results, "~/repos/measures-of-bilingualism/data/mfa/mfa_no_qc_a.rds")
+write_rds(mfa_results, "data/analysis/mfa/mfa_results.rds")
 ```
 
 ## Pretty plot for groups representation
@@ -377,12 +377,8 @@ dim_3_vals <- c(coords[1,3],
                 coords[6,3],
                 coords[7,3])
 
-df_to_plot_2d <- data.frame(questionnaires, dim_1_vals, dim_2_vals)
-#write_csv(df_to_plot, "table_data/MFA_group_coords_2d.csv", col_names = TRUE)
-
-#df_to_plot_3d <- data.frame(questionnaires, dim_1_vals, dim_2_vals, dim_3_vals)
-#write_csv(df_to_plot, "table_data/MFA_group_coords_3d.csv", col_names = TRUE)
-
+df_to_plot <- data.frame(questionnaires, dim_1_vals, dim_2_vals)
+write_csv(df_to_plot, "data/analysis/mfa/MFA_group_coords_2d.csv", col_names = TRUE)
 ```
 
 ### Generate the plot
@@ -397,8 +393,8 @@ mfa_groups_plot <- ggplot(df_to_plot_2d, aes(
                 color = questionnaires,
                 label = questionnaires)) +
   geom_point(size = 4) +
-  #geom_text(vjust = -1, position = position_nudge(y = 0.01)) +
-  geom_text_repel() +
+  geom_text(vjust = -1, position = position_nudge(x = 0.04, y = -.01)) +
+  #geom_text_repel(nudge_x = .05) +
   scale_color_manual(values = palette) +
   ylim(0, 1) + 
   xlim(0, 1) +
@@ -413,9 +409,9 @@ mfa_groups_plot <- ggplot(df_to_plot_2d, aes(
 
 mfa_groups_plot
 
-#ggsave("figures/MFA_groups_overall.png",
-#       plot = mfa_groups_plot,
-#       dpi=300)
+ggsave("data/analysis/mfa/MFA_groups_overall.png",
+       plot = mfa_groups_plot,
+       dpi=300)
 ```
 
 ## Group representation table
@@ -455,28 +451,16 @@ var_exp <-  c(eigenvalues[1,2],
                eigenvalues[5,2])
 
 dims_df <- data.frame(dimensions, eigs, var_exp)
-#write_csv(dims_df, "table_data/MFA_dims_eig_varexp.csv", col_names = TRUE)
+write_csv(dims_df, "data/analysis/mfa/MFA_dims_eig_varexp.csv", col_names = TRUE)
 
 ```
 
-## Scree plot and HCPC
+## Scree plot
 
 ```{r}
 
 # Visualize the eigenvalues
-
 fviz_eig(mfa_results)
-
-
-## PROBABLY CAN THIS
-
-# Hierarchical clustering on principal components
-
-#clustering_results <- HCPC(mfa_results,
-#                              nb.clust = -1,
-#                              min = 3,
-#                              max = NULL,
-#                              graph = TRUE)
 ```
 
 ## Get factor scores for each participant
@@ -488,7 +472,7 @@ factor_scores <- mfa_results$ind$coord
 
 # add IDs back
 factor_scores_with_ids <- data.frame(cbind(id = bds_mfa$id, factor_scores))
-#write_csv(factor_scores_with_ids, "table_data/factor_scores.csv")
+write_csv(factor_scores_with_ids, "data/analysis/mfa/factor_scores.csv")
 ```
 
 ## Characterizing the dimensions
@@ -536,7 +520,7 @@ result_df_dim1 <- data.frame(
 # Print the result
 print(result_df_dim1)
 
-#write_csv(result_df_dim1, "table_data/dim1_lo-hi.csv")
+write_csv(result_df_dim1, "data/analysis/mfa/dim1_lo-hi.csv")
 
 ```
 
@@ -582,13 +566,5 @@ result_df_dim2 <- data.frame(
 
 # Print the result
 print(result_df_dim2)
-#write_csv(result_df_dim2, "table_data/dim2_lo-hi.csv")
-```
-
-## Pretty plots for paper
-
-```{r}
-
-fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 1)
-fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 2)
+write_csv(result_df_dim2, "data/analysis/mfa/dim2_lo-hi.csv")
 ```
