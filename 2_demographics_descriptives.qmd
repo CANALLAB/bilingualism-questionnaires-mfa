@@ -1,0 +1,91 @@
+---
+title: "1_mfa_prep"
+format: html
+editor: visual
+---
+
+# Load packages
+
+```{r}
+
+library(readr)
+```
+
+# L1 breakdown
+
+```{r}
+
+participants <- read_csv("data/demographics/participant_demographics.csv", col_names = TRUE)
+
+l1_breakdown <- table(participants$l1)
+# 313 L1 English, L2 French
+# 149 L1 French, L2 English
+
+l1_breakdown_by_site <- table(participants$l1, group = participants$site)
+# Carleton: 187 L1 ENG, 21 L1 FR
+# uOttawa: 126 L1 ENG, 128 L1 FR
+
+```
+
+# Age, gender, education (by site)
+
+```{r}
+
+# using BLP data from step 5 of cleaning (before L1_aoa was removed and L2_aoa was reverse-coded)
+demog_and_language_data <- read_csv("data/questionnaires/5_unordered_removed/blp_5_unordered_removed.csv") %>%
+  select(blp_L1_aoa, 
+         blp_L2_aoa,
+         blp_L2_proficiency_speaking, 
+         blp_L2_proficiency_understanding,
+         blp_L2_proficiency_reading, 
+         blp_L2_proficiency_writing,
+         id) %>%
+  inner_join(participants, by = "id")
+
+describe(demog_and_language_data$Age)
+describeBy(demog_and_language_data$Age, demog_and_language_data$site)
+
+table(demog_and_language_data$Gender)
+table(demog_and_language_data$Gender, demog_and_language_data$site)
+
+table(demog_and_language_data$Education)
+table(demog_and_language_data$Education, demog_and_language_data$site)
+
+```
+
+# Language descriptives
+
+```{r}
+
+# L1 and L2 AoA
+# no significant differences between groups in AoA measures
+
+describe(demog_and_language_data$blp_L1_aoa)
+t.test(blp_L1_aoa ~ site, data = demog_and_language_data, na.action = na.omit)
+
+describe(demog_and_language_data$blp_L2_aoa)
+t.test(blp_L2_aoa ~ site, data = demog_and_language_data, na.action = na.omit)
+
+describeBy(demog_and_language_data$blp_L1_aoa, group = demog_and_language_data$site)
+describeBy(demog_and_language_data$blp_L2_aoa, group = demog_and_language_data$site)
+
+# L2 proficiency
+# significant difference between groups on all 4 proficiency measures
+
+describe(demog_and_language_data$blp_L2_proficiency_speaking)
+describeBy(demog_and_language_data$blp_L2_proficiency_speaking, group = demog_and_language_data$site)
+t.test(blp_L2_proficiency_speaking ~ site, data = demog_and_language_data, na.action = na.omit)
+
+describe(demog_and_language_data$blp_L2_proficiency_understanding)
+describeBy(demog_and_language_data$blp_L2_proficiency_understanding, group = demog_and_language_data$site)
+t.test(blp_L2_proficiency_understanding ~ site, data = demog_and_language_data, na.action = na.omit)
+
+describe(demog_and_language_data$blp_L2_proficiency_reading)
+describeBy(demog_and_language_data$blp_L2_proficiency_reading, group = demog_and_language_data$site)
+t.test(blp_L2_proficiency_reading ~ site, data = demog_and_language_data, na.action = na.omit)
+
+describe(demog_and_language_data$blp_L2_proficiency_writing)
+describeBy(demog_and_language_data$blp_L2_proficiency_writing, group = demog_and_language_data$site)
+t.test(blp_L2_proficiency_writing ~ site, data = demog_and_language_data, na.action = na.omit)
+
+```

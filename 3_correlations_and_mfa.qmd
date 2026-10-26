@@ -1,0 +1,657 @@
+---
+title: "1_mfa_prep"
+format: html
+editor: visual
+---
+
+# Load packages
+
+```{r}
+
+library(factoextra)
+library(FactoMineR)
+library(readr)
+library(dplyr)
+#library(readxl)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+library(Hmisc)
+library(polycor)
+library(stringr)
+library(psych)
+library(caret)
+library(NatParksPalettes)
+#library(ggthemes)
+library(easystats)
+library(ggrepel)
+library(heatmap3)
+library(scales)
+library(RcmdrMisc)
+```
+
+# Correlations
+
+## Load data
+
+```{r}
+
+bds <- read_csv("data/questionnaires/8_reverse_coded/bds_8_reverse_coded.csv")
+beq <- read_csv("data/questionnaires/8_reverse_coded/beq_8_reverse_coded.csv")
+blp <- read_csv("data/questionnaires/8_reverse_coded/blp_8_reverse_coded.csv")
+bsq <- read_csv("data/questionnaires/8_reverse_coded/bsq_8_reverse_coded.csv")
+leapq <- read_csv("data/questionnaires/8_reverse_coded/leapq_8_reverse_coded.csv")
+lhq <- read_csv("data/questionnaires/8_reverse_coded/lhq_8_reverse_coded.csv")
+lsbq <- read_csv("data/questionnaires/8_reverse_coded/lsbq_8_reverse_coded.csv")
+# concatenate and remove ID
+
+data_to_analyze_for_correlations <- list(blp, bsq, beq, leapq, lsbq, bds, lhq) %>%
+  reduce(left_join, by = "id")
+
+```
+
+## L2 AoA items
+
+```{r}
+
+aoa_data <- data_to_analyze_for_correlations %>%
+  dplyr::select(., blp_L2_aoa, leapq_aoa_L2, lsbq_L2_aoa, bds_aoa_L2_1, lhq_L2_aoa) %>%
+  filter(complete.cases(.))
+
+aoa_cormat <- rcorr(as.matrix(aoa_data))
+
+write_csv(data.frame(aoa_cormat$r), "data/analysis/correlations/aoa/cormat_aoa_r.csv")
+write_csv(data.frame(aoa_cormat$n), "data/analysis/correlations/aoa/cormat_aoa_n.csv")
+write_csv(data.frame(aoa_cormat$P), "data/analysis/correlations/aoa/cormat_aoa_P_uncorrected.csv")
+
+aoa_cormat_corrected <- p.adjust(aoa_cormat$P, method="bonferroni")
+format(aoa_cormat_corrected, scientific = TRUE)
+
+write_csv(data.frame(
+            matrix(
+              unlist(aoa_cormat_corrected), 
+              nrow = 5,
+              ncol = 5)
+          ), 
+          "data/analysis/correlations/aoa/cormat_aoa_P_corrected.csv", 
+          col_names = FALSE)
+```
+
+## Proficiency items
+
+### Speaking
+
+```{r}
+
+l2_speaking_data <- data_to_analyze_for_correlations %>%
+  dplyr::select(.,
+         blp = blp_L2_proficiency_speaking,
+         leapq = leapq_L2_proficiency_speaking,
+         lsbq = lsbq_L2_proficiency_speaking,
+         lhq = lhq_L2_proficiency_speaking) %>%
+  filter(complete.cases(.)) %>%
+  mutate(lsbq = lsbq - 2) %>%
+  mutate(lsbq = case_when(
+    lsbq == -1 ~ 0,
+    lsbq != -1 ~ lsbq
+  ))
+
+l2_speaking_cormat <- rcorr(as.matrix(l2_speaking_data))
+
+write_csv(data.frame(l2_speaking_cormat$r), "data/analysis/correlations/speaking/cormat_l2spk_r.csv")
+write_csv(data.frame(l2_speaking_cormat$n), "data/analysis/correlations/speaking/cormat_l2spk_n.csv")
+write_csv(data.frame(l2_speaking_cormat$P), "data/analysis/correlations/speaking/cormat_l2spk_P_uncorrected.csv")
+
+l2_speaking_cormat_corrected <- p.adjust(l2_speaking_cormat$P, method="bonferroni")
+format(l2_speaking_cormat_corrected, scientific = TRUE)
+
+write_csv(data.frame(
+            matrix(
+              unlist(l2_speaking_cormat_corrected), 
+              nrow = 4,
+              ncol = 4)
+          ), 
+          "data/analysis/correlations/speaking/cormat_l2spk_P_corrected.csv", 
+          col_names = FALSE)
+
+describe(l2_speaking_data)
+```
+
+#### Distributions
+
+```{r}
+
+ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = lsbq)) +
+  geom_violin()
+
+ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = leapq)) +
+  geom_violin()
+
+ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = lhq)) +
+  geom_violin()
+
+ggplot(l2_speaking_data_seq_bilinguals, aes(x = "", y = blp)) +
+  geom_violin()
+
+```
+
+## L2 Usage
+
+### Get correlation matrix and save it
+
+```{r}
+# These are the usage items..
+usage_cols <- colnames(data_to_analyze_for_correlations)[str_detect(colnames(data_to_analyze_for_correlations), 'use')]
+
+l1_items <- c("blp_L1_use_family",
+              "blp_L1_use_friends",
+              "blp_L1_use_school_work",
+              "lhq_L1_use_tv_radio",
+              "lhq_L1_use_reading",
+              "bsq_use_l1_in_l2")
+
+l2_usage_cols <- setdiff(usage_cols, l1_items)
+
+usage_data_for_corr <- data_to_analyze_for_correlations %>%
+  select(all_of(l2_usage_cols))
+usage_cormat <- rcorr(as.matrix(usage_data_for_corr), type="pearson")
+
+write_csv(data.frame(usage_cormat$r), "data/analysis/correlations/usage/cormat_usage_r.csv")
+write_csv(data.frame(usage_cormat$n), "data/analysis/correlations/usage/cormat_usage_n.csv")
+write_csv(data.frame(usage_cormat$P), "data/analysis/correlations/usage/cormat_usage_P_uncorrected.csv")
+
+rmat_df <- data.frame(usage_cormat$r)
+pmat_df <- data.frame(usage_cormat$P)
+
+usage_cormat_corrected <- p.adjust(usage_cormat$P, method="bonferroni")
+
+pmat_corrected_df <- data.frame(
+            matrix(
+              unlist(usage_cormat_corrected), 
+              nrow = length(l2_usage_cols),
+              ncol = length(l2_usage_cols)
+            ))
+colnames(pmat_corrected_df) <- l2_usage_cols
+
+
+write_csv(pmat_corrected_df, 
+          "data/analysis/correlations/usage/cormat_usage_P_corrected.csv", 
+          col_names = TRUE)
+
+count_0 <- sum(pmat_corrected_df == 0, na.rm=TRUE)
+count_sig_1 <- sum(pmat_corrected_df < 0.001, na.rm=TRUE)
+count_sig_2 <- sum(pmat_corrected_df < 0.01, na.rm=TRUE)
+count_sig_3 <- sum(pmat_corrected_df < 0.05, na.rm=TRUE)
+
+```
+
+### Plot correlation matrix (all L2 items included)
+
+```{r}
+
+# Convert to long format
+
+# r values
+var_order_r <- as.factor(colnames(rmat_df))
+
+df_r <- rmat_df %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1,
+               names_to = "Var2",
+               values_to = "r") %>%
+  mutate(
+    Var1 = factor(Var1, levels = var_order_r),
+    Var2 = factor(Var2, levels = var_order_r),
+    row = as.numeric(Var1),
+    col = as.numeric(Var2),
+    r = ifelse(col == row, NA, r)
+  )
+
+# adjusted p values
+var_order_p <- as.factor(colnames(pmat_df))
+
+df_p <- pmat_df %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1,
+               names_to = "Var2",
+               values_to = "p") %>%
+  mutate(
+    Var1 = factor(Var1, levels = var_order_p),
+    Var2 = factor(Var2, levels = var_order_p),
+    row = as.numeric(Var1),
+    col = as.numeric(Var2),
+    p = ifelse(col == row, NA, p)
+  )
+
+# merge p and r values into single data frame and derive significance lapel from p
+
+merged_r_and_p <- merge(df_r, df_p, by=c("Var1", "Var2")) %>%
+  select(Var1, Var2, r, p) %>%
+  mutate(sig_label = case_when(
+    p < 0.001 ~ "**",
+    p < 0.01  ~ "*",
+    p >= 0.01 ~ ""
+  ))
+
+#unique(merged_r_and_p$Var1)
+
+better_names <- c("Express emotions",
+                  "Reading",
+                  "TV/radio",
+                  "Praying",
+                  "Internet",
+                  "Movies",
+                  "TV/radio",
+                  "Lists/notes",
+                  "Social media",
+                  "Texting",
+                  "Emailing",
+                  "Reading",
+                  "Health/gov't/bank",
+                  "Shop/restaurant",
+                  "Extracurriculars",
+                  "Religion",
+                  "Socially",
+                  "Work",
+                  "School",
+                  "Home",
+                  "Neighbours",
+                  "Relatives",
+                  "Siblings",
+                  "Parents",
+                  "Highschool",
+                  "Primary school",
+                  "Preschool",
+                  "Infancy",
+                  "Useful",
+                  "L2 in L1",
+                  "Counting",
+                  "Alone",
+                  "School/work",
+                  "Friends",
+                  "Family")
+
+better_names_rev <- rev(better_names)
+
+ggplot(merged_r_and_p, aes(x = Var1, y = Var2, fill = r)) +
+  geom_tile(color = "grey90") +
+  scale_fill_gradient2(
+    low = "blue3",
+    mid= "white",
+    high = "firebrick",
+    midpoint = 0,
+    limits = c(-1, 1),
+    na.value = "white"
+  ) +
+  geom_text(aes(label = sig_label), size = 3.5, color="black") +
+  scale_x_discrete(labels = better_names_rev) +
+  scale_y_discrete(labels = better_names_rev) +
+  coord_fixed() +
+  theme_minimal() +
+  theme(
+      panel.grid = element_blank(),
+      axis.text.y = element_text(color = "black",
+                                 size = 9),
+      axis.text.x = element_text(angle = 45,
+                                 hjust = 1,
+                                 color = "black",
+                                 size = 9),
+      axis.title = element_blank()
+  )
+
+
+
+```
+
+### Remove items with xxxxx
+
+```{r}
+
+cols_to_remove <- c("blp_L1_use_family",
+                    )
+
+# remove bsq items that are really about mixing
+use_cols_2 <- use_cols[use_cols != "bsq_use_l1_in_l2"]
+use_cols_2 <- use_cols_2[use_cols_2 != "bsq_use_l2_in_l1"]
+# remove beq item that is really about utility (usefulness, not use)
+use_cols_2 <- use_cols_2[use_cols_2 != "beq_L2_useful_subjective"]
+# remove L1 usage items
+use_cols_2 <- use_cols_2[use_cols_2 != "blp_L1_use_family"]
+use_cols_2 <- use_cols_2[use_cols_2 != "blp_L1_use_friends"] 
+use_cols_2 <- use_cols_2[use_cols_2 != "blp_L1_use_school_work"]
+use_cols_2 <- use_cols_2[use_cols_2 != "lhq_percent_daily_use_1"] 
+use_cols_2 <- use_cols_2[use_cols_2 != "lhq_L1_use_tv_radio"] 
+use_cols_2 <- use_cols_2[use_cols_2 != "lhq_L1_use_communicating"] 
+use_cols_2 <- use_cols_2[use_cols_2 != "lhq_L1_use_reading"]
+
+usage_data_for_corr_2 <- data_to_analyze_for_correlations %>%
+  select(all_of(use_cols_2))
+usage_cormat_2 <- rcorr(as.matrix(usage_data_for_corr_2), type="pearson")
+
+write_csv(data.frame(usage_cormat_2$r), "data/analysis/correlations/usage/cormat_usage_2_r.csv")
+write_csv(data.frame(usage_cormat_2$n), "data/analysis/correlations/usage/cormat_usage_2_n.csv")
+write_csv(data.frame(usage_cormat_2$P), "data/analysis/correlations/usage/cormat_usage_2_P_uncorrected.csv")
+
+### 3: final version
+
+use_cols_3 <- use_cols_2[use_cols_2 != "lsbq_use_during_infancy"]
+use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_during_preschool"] 
+use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_during_primaryschool"]
+use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_religion"] 
+use_cols_3 <- use_cols_3[use_cols_3 != "lsbq_use_praying"]
+
+usage_data_for_corr_3 <- data_to_analyze_for_correlations %>%
+  select(all_of(use_cols_3))
+usage_cormat_3 <- rcorr(as.matrix(usage_data_for_corr_3), type="pearson")
+
+
+#write_csv(data.frame(usage_cormat_3$r), "table_data/cormat_usage_3_r.csv")
+#write_csv(data.frame(usage_cormat_3$n), "table_data/cormat_usage_3_n.csv")
+#write_csv(data.frame(usage_cormat_3$P), "table_data/cormat_usage_3_P.csv")
+
+rmat_df <- data.frame(usage_cormat_2$r)
+pmat_df <- data.frame(usage_cormat_2$P)
+
+# adjusted
+usage_cormat_adjusted <- p.adjust(usage_cormat_3$P, method="bonferroni")
+
+count_0 <- sum(usage_cormat_adjusted == 0, na.rm=TRUE)
+count_sig <- sum(usage_cormat_adjusted < 0.001, na.rm=TRUE)
+```
+
+### Plot again
+
+```{r}
+
+
+```
+
+# MFA
+
+## Run the MFA
+
+```{r}
+
+# Load data
+bds_mfa <- read_csv("data/questionnaires/8_reverse_coded/bds_8_reverse_coded.csv")
+beq_mfa <- read_csv("data/questionnaires/8_reverse_coded/beq_8_reverse_coded.csv")
+blp_mfa <- read_csv("data/questionnaires/8_reverse_coded/blp_8_reverse_coded.csv")
+bsq_mfa <- read_csv("data/questionnaires/8_reverse_coded/bsq_8_reverse_coded.csv")
+leapq_mfa <- read_csv("data/questionnaires/8_reverse_coded/leapq_8_reverse_coded.csv")
+lhq_mfa <- read_csv("data/questionnaires/8_reverse_coded/lhq_8_reverse_coded.csv")
+lsbq_mfa <- read_csv("data/questionnaires/8_reverse_coded/lsbq_8_reverse_coded.csv")
+
+# Concatenate in single data frame
+mfa_input <- list(bds_mfa,
+                  beq_mfa,
+                  blp_mfa, 
+                  bsq_mfa, 
+                  leapq_mfa, 
+                  lhq_mfa,
+                  lsbq_mfa) %>%
+  reduce(left_join, by = "id") %>%
+  mutate(., id = NULL)
+
+# Run the MFA
+mfa_results <- MFA(mfa_input, 
+               group = c(ncol(bds_mfa)   - 1,
+                         ncol(beq_mfa)   - 1,
+                         ncol(blp_mfa)   - 1,
+                         ncol(bsq_mfa) - 1,
+                         ncol(leapq_mfa)  - 1,
+                         ncol(lhq_mfa)   - 1,
+                         ncol(lsbq_mfa)   - 1
+                         ), 
+               type = c("s","s","s","s","s","s","s"),
+               name.group= c("BDS", "BEQ", "BLP", "BSwQ", "LEAP-Q", "LHQ", "LSBQ"),
+               graph = TRUE)
+
+#write_rds(mfa_results, "~/repos/measures-of-bilingualism/data/mfa/mfa_no_qc_a.rds")
+```
+
+## Pretty plot for groups representation
+
+### Set up the plot
+
+```{r}
+
+coords <- mfa_results$group$coord
+
+questionnaires <- c("BDS", "BEQ", "BLP", "BSwQ", "LEAP-Q", "LHQ", "LSBQ")
+dim_1_vals <- c(coords[1,1],
+                coords[2,1],
+                coords[3,1],
+                coords[4,1],
+                coords[5,1],
+                coords[6,1],
+                coords[7,1])
+dim_2_vals <- c(coords[1,2],
+                coords[2,2],
+                coords[3,2],
+                coords[4,2],
+                coords[5,2],
+                coords[6,2],
+                coords[7,2])
+dim_3_vals <- c(coords[1,3],
+                coords[2,3],
+                coords[3,3],
+                coords[4,3],
+                coords[5,3],
+                coords[6,3],
+                coords[7,3])
+
+df_to_plot_2d <- data.frame(questionnaires, dim_1_vals, dim_2_vals)
+#write_csv(df_to_plot, "table_data/MFA_group_coords_2d.csv", col_names = TRUE)
+
+#df_to_plot_3d <- data.frame(questionnaires, dim_1_vals, dim_2_vals, dim_3_vals)
+#write_csv(df_to_plot, "table_data/MFA_group_coords_3d.csv", col_names = TRUE)
+
+```
+
+### Generate the plot
+
+```{r}
+
+palette <- natparks.pals("Halekala", n = nrow(df_to_plot_2d))
+
+mfa_groups_plot <- ggplot(df_to_plot_2d, aes(
+                x = dim_1_vals,
+                y = dim_2_vals,
+                color = questionnaires,
+                label = questionnaires)) +
+  geom_point(size = 4) +
+  #geom_text(vjust = -1, position = position_nudge(y = 0.01)) +
+  geom_text_repel() +
+  scale_color_manual(values = palette) +
+  ylim(0, 1) + 
+  xlim(0, 1) +
+  #theme_modern() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Dimension 1 (Usage)",
+    y = "Dimension 2 (History)",
+    color = "Questionnaire",
+    title = "MFA Group Representation: Dimensions 1 & 2"
+  )
+
+mfa_groups_plot
+
+#ggsave("figures/MFA_groups_overall.png",
+#       plot = mfa_groups_plot,
+#       dpi=300)
+```
+
+## Group representation table
+
+```{r}
+
+holistic_score <- mfa_results$group$coord %>%
+  as.data.frame() %>%
+  mutate(Dimension_1 = Dim.1,
+         Dimension_2 = Dim.2) %>%
+  select(Dimension_1, Dimension_2) %>%
+  mutate(overall_score = Dimension_1 * Dimension_2)
+
+
+```
+
+## Visualize the eigenvalues, dimensions
+
+### Table of dimensions, eigenvalues
+
+```{r}
+
+eigenvalues <- mfa_results$eig
+
+dimensions <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+eigs <- c(eigenvalues[1,1],
+                 eigenvalues[2,1],
+                 eigenvalues[3,1],
+                 eigenvalues[4,1],
+                 eigenvalues[5,1])
+
+var_exp <-  c(eigenvalues[1,2],
+               eigenvalues[2,2],
+               eigenvalues[3,2],
+               eigenvalues[4,2],
+               eigenvalues[5,2])
+
+dims_df <- data.frame(dimensions, eigs, var_exp)
+#write_csv(dims_df, "table_data/MFA_dims_eig_varexp.csv", col_names = TRUE)
+
+```
+
+## Scree plot and HCPC
+
+```{r}
+
+# Visualize the eigenvalues
+
+fviz_eig(mfa_results)
+
+
+## PROBABLY CAN THIS
+
+# Hierarchical clustering on principal components
+
+#clustering_results <- HCPC(mfa_results,
+#                              nb.clust = -1,
+#                              min = 3,
+#                              max = NULL,
+#                              graph = TRUE)
+```
+
+## Get factor scores for each participant
+
+```{r}
+
+# Factor scores for each participant
+factor_scores <- mfa_results$ind$coord
+
+# add IDs back
+factor_scores_with_ids <- data.frame(cbind(id = bds_mfa$id, factor_scores))
+#write_csv(factor_scores_with_ids, "table_data/factor_scores.csv")
+```
+
+## Characterizing the dimensions
+
+### Dim.1 (Usage)
+
+```{r}
+
+#fviz_contrib(mfa_results, "partial.axes",  top = 7, axes = 1)
+#fviz_contrib(mfa_results, "group", top = 7, axes = 1)
+fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 1)
+
+# Extract Dim.1 scores for all participants
+dim1_scores <- mfa_results$ind$coord[, "Dim.1"]
+
+# get 10 columns that contribute most to dimension
+dim1_contrib <- mfa_results$quanti.var$contrib[, "Dim.1"]
+top_contributors <- names(sort(dim1_contrib, decreasing = TRUE))[1:10]
+
+# Determine quartile cutoffs
+q1_cutoff <- quantile(dim1_scores, 0.25) # Bottom quartile
+q3_cutoff <- quantile(dim1_scores, 0.75) # Top quartile
+
+# Identify participants in each quartile
+bottom_quartile <- dim1_scores <= q1_cutoff
+top_quartile <- dim1_scores >= q3_cutoff
+
+# Extract the dataset containing the top contributing variables
+data_matrix <- mfa_results$call$X # The original data used in MFA
+
+# Select only the columns corresponding to top contributors
+selected_data <- data_matrix[, top_contributors]
+
+# Compute mean values for top and bottom quartile groups
+means_bottom <- colMeans(selected_data[bottom_quartile, , drop = FALSE], na.rm = TRUE)
+means_top <- colMeans(selected_data[top_quartile, , drop = FALSE], na.rm = TRUE)
+
+# Create a dataframe
+result_df_dim1 <- data.frame(
+  Variable = top_contributors,
+  Mean_Bottom_Quartile = round(means_bottom, 2),
+  Mean_Top_Quartile = round(means_top, 2)
+)
+
+# Print the result
+print(result_df_dim1)
+
+#write_csv(result_df_dim1, "table_data/dim1_lo-hi.csv")
+
+```
+
+### Dim.2 (History)
+
+```{r}
+
+#fviz_contrib(mfa_results, "partial.axes",  top = 7, axes = 2)
+#fviz_contrib(mfa_results, "group", top = 7, axes = 2)
+fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 2)
+
+# Extract Dim.1 scores for all participants
+dim2_scores <- mfa_results$ind$coord[, "Dim.2"]
+
+# get 10 columns that contribute most to dimension
+dim2_contrib <- mfa_results$quanti.var$contrib[, "Dim.2"]
+top_contributors <- names(sort(dim2_contrib, decreasing = TRUE))[1:10]
+
+# Determine quartile cutoffs
+q1_cutoff <- quantile(dim2_scores, 0.25) # Bottom quartile
+q3_cutoff <- quantile(dim2_scores, 0.75) # Top quartile
+
+# Identify participants in each quartile
+bottom_quartile <- dim2_scores <= q1_cutoff
+top_quartile <- dim2_scores >= q3_cutoff
+
+# Extract the dataset containing the top contributing variables
+data_matrix <- mfa_results_2$call$X # The original data used in MFA
+
+# Select only the columns corresponding to top contributors
+selected_data <- data_matrix[, top_contributors]
+
+# Compute mean values for top and bottom quartile groups
+means_bottom <- colMeans(selected_data[bottom_quartile, , drop = FALSE], na.rm = TRUE)
+means_top <- colMeans(selected_data[top_quartile, , drop = FALSE], na.rm = TRUE)
+
+# Create a dataframe
+result_df_dim2 <- data.frame(
+  Variable = top_contributors,
+  Mean_Bottom_Quartile = round(means_bottom, 2),
+  Mean_Top_Quartile = round(means_top, 2)
+)
+
+# Print the result
+print(result_df_dim2)
+#write_csv(result_df_dim2, "table_data/dim2_lo-hi.csv")
+```
+
+## Pretty plots for paper
+
+```{r}
+
+fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 1)
+fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 2)
+```

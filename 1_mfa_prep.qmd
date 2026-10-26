@@ -1,0 +1,781 @@
+---
+title: "1_mfa_prep"
+format: html
+editor: visual
+---
+
+# Load packages
+
+```{r}
+
+library(readr)
+library(dplyr)
+library(tidyverse)
+
+# set wd to the root of the git repository on your computer
+setwd("~/repos/bilingualism-questionnaires-mfa/")
+```
+
+# Clean data step-by-step
+
+## Load raw data
+
+```{r}
+
+blp_raw <-    read_csv("data/questionnaires/1_raw/blp_1_raw.csv")
+bsq_raw <-    read_csv("data/questionnaires/1_raw/bsq_1_raw.csv")
+beq_raw <-    read_csv("data/questionnaires/1_raw/beq_1_raw.csv")
+leapq_raw <-  read_csv("data/questionnaires/1_raw/leapq_1_raw.csv")
+lsbq_raw <-   read_csv("data/questionnaires/1_raw/lsbq_1_raw.csv")
+bds_raw <-    read_csv("data/questionnaires/1_raw/bds_1_raw.csv")
+lhq_raw <-    read_csv("data/questionnaires/1_raw/lhq_1_raw.csv")
+```
+
+## Add questionnaire prefixes to column names
+
+This step ensures items can be easily traced to their questionnaires after the items have been combined in a single data frame.
+
+```{r}
+
+blp_with_prefixes <- blp_raw %>%
+  rename_with(~ paste0("blp_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/blp_2_prefix.csv")
+  
+bsq_with_prefixes <- bsq_raw %>%
+  rename_with(~ paste0("bsq_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/bsq_2_prefix.csv")
+
+beq_with_prefixes <- beq_raw %>%
+  rename_with(~ paste0("beq_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/beq_2_prefix.csv")
+
+leapq_with_prefixes <- leapq_raw %>%
+  rename_with(~ paste0("leapq_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/leapq_2_prefix.csv")
+
+lsbq_with_prefixes <- lsbq_raw %>%
+  rename_with(~ paste0("lsbq_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/lsbq_2_prefix.csv")
+
+bds_with_prefixes <- bds_raw %>%
+  rename_with(~ paste0("bds_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/bds_2_prefix.csv")
+
+lhq_with_prefixes <- lhq_raw %>%
+  rename_with(~ paste0("lhq_", .), -id) %>%
+  write_csv(., "data/questionnaires/2_prefix/lhq_2_prefix.csv")
+
+```
+
+## Correct NA values
+
+Some questions had several choices, the last of which was "NA". These responses were exported from Qualtrics coded as integers (i.e., the upper extreme value of the scale). We want to change these values to "NA".
+
+Similarly, unchecked checkboxes for true/false questions are now coded as "NA" (no response) but should be 0 (i.e., false).
+
+### BSQ: nothing to correct
+
+```{r}
+
+bsq_na_corrected <- bsq_with_prefixes %>%
+  write_csv("data/questionnaires/3_NA_corrected/bsq_3_NA_corrected.csv")
+
+```
+
+### BDS
+
+Question that asks "when did you become comfortable speaking your L2?" has a "not yet" option that is currently coded as 5, but should be NA.
+
+```{r}
+
+bds_na_corrected <- bds_with_prefixes 
+bds_cols_to_fix <- c('bds_age_comfortable_speaking_L2_1')
+bds_na_corrected[bds_cols_to_fix][(bds_na_corrected[bds_cols_to_fix]) == 5] <- NA
+write_csv(bds_na_corrected, "data/questionnaires/3_NA_corrected/bds_3_NA_corrected.csv")
+```
+
+### BLP
+
+Two questions about "age became comfortable" have options for each year (1 to 20), followed by an NA option. This NA is incorrectly coded as 21 years; here we correct instances of 21 to NA.
+
+```{r}
+
+blp_na_corrected <- blp_with_prefixes
+
+blp_cols_to_fix <- c('blp_L1_age_became_comfortable', 'blp_L2_age_became_comfortable')
+
+blp_na_corrected[blp_cols_to_fix][(blp_na_corrected[blp_cols_to_fix]) == 21] <- NA
+
+write_csv(blp_na_corrected, "data/questionnaires/3_NA_corrected/blp_3_NA_corrected.csv")
+```
+
+### BEQ
+
+The BEQ contains questions for which the value of 4 should be NA (language spoken with partner); 3 should be NA (three questions); and 6 should be NA (a few dozen questions).
+
+```{r}
+
+beq_na_corrected <- beq_with_prefixes
+
+# partner_langs - 4 is NA
+beq_4_is_na <- c('beq_partner_langs')
+beq_na_corrected[beq_4_is_na][(beq_na_corrected[beq_4_is_na]) == 4] <- NA
+
+# personal_diary, if_partner_diff_l1, if_partner_diffargue  - 3 is NA
+beq_3_is_na <- c('beq_personal_diary', 'beq_if_partner_diff_l1', 'beq_if_partner_diffargue')
+beq_na_corrected[beq_3_is_na][(beq_na_corrected[beq_3_is_na]) == 3] <- NA
+
+# 6 is NA: 8 switching questions, 12 anger questions, 4 swearing, 10 deep emotions, 10 anxious, 2 inner speech
+beq_6_is_na <- c('beq_switching_friends_Switching',
+                 'beq_switching_family_Switching',
+                 'beq_switching_strangers_Switching',
+                 'beq_switching_public_Switching',
+                 'beq_switching_work_Switching',
+                 'beq_switching_neutral_matters_Switching',
+                 'beq_switching_personal_matters_Switching',
+                 'beq_switching_emotional_matters_Switching',
+                 'beq_L1_angry_alone',
+                 'beq_L2_angry_alone',
+                 'beq_L1_angry_email',
+                 'beq_L2_angry_email',
+                 'beq_L1_angry_friends',
+                 'beq_L2_angry_friends',
+                 'beq_L1_angry_parents',
+                 'beq_L2_angry_parents',
+                 'beq_L1_angry_partner',
+                 'beq_L2_angry_partner',
+                 'beq_L1_angry_strangers',
+                 'beq_L2_angry_strangers',
+                 'beq_L1_swearing',
+                 'beq_L2_swearing',
+                 'beq_L1_emotional_weight_swearing',
+                 'beq_L2_emotional_weight_swearing',
+                 'beq_L1_express_emotions_alone',
+                 'beq_L2_express_emotions_alone',
+                 'beq_L1_express_emotions_email',
+                 'beq_L2_express_emotions_email',
+                 'beq_L1_express_emotions_friends',
+                 'beq_L2_express_emotions_friends',
+                 'beq_L1_express_emotions_parents',
+                 'beq_L2_express_emotions_parents',
+                 'beq_L1_express_emotions_partners',
+                 'beq_L2_express_emotions_partners',
+                 'beq_anxious_friends_L1',
+                 'beq_anxious_colleagues_L1',
+                 'beq_anxious_strangers_L1',
+                 'beq_anxious_telephone_L1',
+                 'beq_anxious_public_L1',
+                 'beq_anxious_friends_L2',
+                 'beq_anxious_colleagues_L2',
+                 'beq_anxious_strangers_L2',
+                 'beq_anxious_telephone_L2',
+                 'beq_anxious_public_L2',
+                 'beq_L1_inner_speech',
+                 'beq_L2_inner_speech')
+beq_na_corrected[beq_6_is_na][(beq_na_corrected[beq_6_is_na]) == 6] <- NA
+
+write_csv(beq_na_corrected, "data/questionnaires/3_NA_corrected/beq_3_NA_corrected.csv")
+
+```
+
+### LEAP-Q
+
+```{r}
+
+leapq_na_corrected <- leapq_with_prefixes
+
+# L2_AOA: 5 is NA
+leapq_5_is_na <- c('leapq_aoa_L2', 'leapq_age_fluency_achieved_L2', 'leapq_aoa_reading_L2', 'leapq_age_reading_fluently_L2') 
+leapq_na_corrected[leapq_5_is_na][(leapq_na_corrected[leapq_5_is_na]) == 5] <- NA
+
+write_csv(leapq_na_corrected, "data/questionnaires/3_NA_corrected/leapq_3_NA_corrected.csv")
+```
+
+### LHQ 
+
+For the LHQ, unchecked checkboxes should be 0 (i.e., false) instead of NA for questions about L2 learning method.
+
+For questions about use (dreaming and math), 8 should be NA. For questions about language of instruction, 4 should be NA.
+
+```{r}
+
+lhq_na_corrected <- lhq_with_prefixes
+
+cols_with_checkboxes <- c('lhq_L2_learning_method_1', 
+                          'lhq_L2_learning_method_2', 
+                          'lhq_L2_learning_method_3')
+
+lhq_na_corrected[cols_with_checkboxes][is.na(lhq_na_corrected[cols_with_checkboxes])] <- 0
+
+lhq_8_is_na <- c('lhq_use_dreaming', 
+                 'lhq_use_math') 
+lhq_na_corrected[lhq_8_is_na][(lhq_na_corrected[lhq_8_is_na]) == 8] <- NA
+
+lhq_4_is_na <- c('lhq_instruction_elementaryschool', 
+                 'lhq_instruction_middleschool',
+                 'lhq_instruction_highschool',
+                 'lhq_instruction_college') 
+lhq_na_corrected[lhq_4_is_na][(lhq_na_corrected[lhq_4_is_na]) == 4] <- NA
+
+write_csv(lhq_na_corrected, "data/questionnaires/3_NA_corrected/lhq_3_NA_corrected.csv")
+
+```
+
+### LSBQ
+
+```{r}
+
+lsbq_na_corrected <- lsbq_with_prefixes
+
+# 6 is NA
+lsbq_6_is_na <- c('lsbq_use_with_parents',
+                  'lsbq_use_with_siblings',
+                  'lsbq_use_with_grandparents',
+                  'lsbq_use_with_relatives',
+                  'lsbq_use_with_partner',
+                  'lsbq_use_with_roommates',
+                  'lsbq_use_with_neighbours') 
+lsbq_na_corrected[lsbq_6_is_na][(lsbq_na_corrected[lsbq_6_is_na]) == 6] <- NA
+
+write_csv(lsbq_na_corrected, "data/questionnaires/3_NA_corrected/lsbq_3_NA_corrected.csv")
+
+```
+
+## A priori demographic and open-text item removal
+
+All questionnaires but the BSwQ have items—including open-text items and demographic items not directly related to language—that should be removed before the multiple factor analysis. List of items can be found in the `data/items_to_remove/` folder
+
+```{r}
+
+# BDS
+bds_cols_to_remove <- read_csv("data/items_to_remove/bds_opentext_nonlang.csv", col_names=FALSE)$X1
+bds_apriori_removal <- bds_na_corrected %>%
+  select(-all_of(bds_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/4_apriori_removals/bds_4_apriori_removals.csv")
+
+# BEQ
+beq_cols_to_remove <- read_csv("data/items_to_remove/beq_opentext_nonlang.csv", col_names=FALSE)$X1
+beq_apriori_removal <- beq_na_corrected %>%
+  select(-all_of(beq_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/4_apriori_removals/beq_4_apriori_removals.csv")
+
+# BLP
+blp_cols_to_remove <- read_csv("data/items_to_remove/blp_opentext_nonlang.csv", col_names=FALSE)$X1
+blp_apriori_removal <- blp_na_corrected %>% 
+  select(-all_of(blp_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/4_apriori_removals/blp_4_apriori_removals.csv")
+
+# BSwQ (nothing to remove)
+bsq_apriori_removal <- bsq_na_corrected %>% 
+  write_csv(., "data/questionnaires/4_apriori_removals/bsq_4_apriori_removals.csv")
+
+# LEAPQ
+leapq_cols_to_remove <- read_csv("data/items_to_remove/leapq_opentext_nonlang.csv", col_names=FALSE)$X1
+leapq_apriori_removal <- leapq_na_corrected %>% 
+  select(-all_of(leapq_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/4_apriori_removals/leapq_4_apriori_removals.csv")
+
+# LHQ
+lhq_cols_to_remove <- read_csv("data/items_to_remove/lhq_opentext_nonlang.csv", col_names=FALSE)$X1
+lhq_apriori_removal <- lhq_na_corrected %>% 
+  select(-all_of(lhq_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/4_apriori_removals/lhq_4_apriori_removals.csv")
+
+# LSBQ
+lsbq_cols_to_remove <- read_csv("data/items_to_remove/lsbq_opentext_nonlang.csv", col_names=FALSE)$X1
+lsbq_apriori_removal <- lsbq_na_corrected %>% 
+  select(-all_of(lsbq_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/4_apriori_removals/lsbq_4_apriori_removals.csv")
+
+```
+
+## Remove unordered factor items
+
+```{r}
+
+### From BDS, LHQ, BEQ
+
+# BDS
+bds_unordered_cols_to_remove <- read_csv("data/items_to_remove/bds_unordered.csv", col_names=FALSE)$X1
+bds_unordered_removed <- bds_apriori_removal %>%
+  select(-all_of(bds_unordered_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/5_unordered_removed/bds_5_unordered_removed.csv")
+
+# BEQ
+
+# BDS
+beq_unordered_cols_to_remove <- read_csv("data/items_to_remove/beq_unordered.csv", col_names=FALSE)$X1
+beq_unordered_removed <- beq_apriori_removal %>%
+  select(-all_of(beq_unordered_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/5_unordered_removed/beq_5_unordered_removed.csv")
+
+# LHQ
+lhq_unordered_cols_to_remove <- read_csv("data/items_to_remove/lhq_unordered.csv", col_names=FALSE)$X1
+lhq_unordered_removed <- lhq_apriori_removal %>%
+  select(-all_of(lhq_unordered_cols_to_remove)) %>%
+  write_csv(., "data/questionnaires/5_unordered_removed/lhq_5_unordered_removed.csv")
+
+### BLP, LEAPQ, LSBQ, BSQ have no unordered factor items
+
+blp_unordered_removed <- blp_apriori_removal %>%
+  write_csv(., "data/questionnaires/5_unordered_removed/blp_5_unordered_removed.csv")
+
+leapq_unordered_removed <- leapq_apriori_removal %>%
+  write_csv(., "data/questionnaires/5_unordered_removed/leapq_5_unordered_removed.csv")
+
+lsbq_unordered_removed <- lsbq_apriori_removal %>%
+  write_csv(., "data/questionnaires/5_unordered_removed/lsbq_5_unordered_removed.csv")
+
+bsq_unordered_removed <- bsq_apriori_removal %>%
+write_csv(., "data/questionnaires/5_unordered_removed/bsq_5_unordered_removed.csv")
+```
+
+## Remove items with more than 20% NA values
+
+### Inspect missingness
+
+```{r}
+
+bds_na_by_col <- colSums(is.na(bds_unordered_removed))
+bds_na_by_col
+
+beq_na_by_col <- colSums(is.na(beq_unordered_removed))
+beq_na_by_col
+
+blp_na_by_col <- colSums(is.na(blp_unordered_removed))
+blp_na_by_col
+
+bsq_na_by_col <- colSums(is.na(bsq_unordered_removed))
+bsq_na_by_col
+
+leapq_na_by_col <- colSums(is.na(leapq_unordered_removed))
+leapq_na_by_col
+
+lhq_na_by_col <- colSums(is.na(lhq_unordered_removed))
+lhq_na_by_col
+
+lsbq_na_by_col <- colSums(is.na(lsbq_unordered_removed))
+lsbq_na_by_col
+```
+
+### Remove items exceeding 20% missingness threshold
+
+```{r}
+
+# set removal threshold at 20% of rows
+removal_threshold <- nrow(blp_unordered_removed) * .2
+
+# BDS
+bds_cols_to_remove_missingness <- names(bds_na_by_col[bds_na_by_col > removal_threshold])
+
+if (length((bds_cols_to_remove_missingness)) > 0) {
+  write((bds_cols_to_remove_missingness), "data/items_to_remove/bds_missingness_removals.csv", ncolumns = 1)
+}
+
+bds_missingness_removed <- bds_unordered_removed %>%
+  select(-all_of(bds_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/bds_6_missing_removed.csv")
+
+# BEQ
+beq_cols_to_remove_missingness <- names(beq_na_by_col[beq_na_by_col > removal_threshold])
+
+if (length(beq_cols_to_remove_missingness) > 0) {
+  write((beq_cols_to_remove_missingness), "data/items_to_remove/beq_missingness_removals.csv", ncolumns = 1)
+}
+
+beq_missingness_removed <- beq_unordered_removed %>%
+  select(-all_of(beq_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/beq_6_missing_removed.csv")
+
+
+# BLP
+blp_cols_to_remove_missingness <- names(blp_na_by_col[blp_na_by_col > removal_threshold])
+
+if (length(blp_cols_to_remove_missingness) > 0) {
+  write((blp_cols_to_remove_missingness), "data/items_to_remove/blp_missingness_removals.csv", ncolumns = 1)
+}
+
+blp_missingness_removed <- blp_unordered_removed %>%
+  select(-all_of(blp_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/blp_6_missing_removed.csv")
+
+
+# BSQ
+bsq_cols_to_remove_missingness <- names(bsq_na_by_col[bsq_na_by_col > removal_threshold])
+
+if (length(bsq_cols_to_remove_missingness) > 0) {
+  write((bsq_cols_to_remove_missingness), "data/items_to_remove/bsq_missingness_removals.csv", ncolumns = 1)
+}
+
+bsq_missingness_removed <- bsq_unordered_removed %>%
+  select(-all_of(bsq_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/bsq_6_missing_removed.csv")
+
+
+# LEAPQ
+leapq_cols_to_remove_missingness <- names(leapq_na_by_col[leapq_na_by_col > removal_threshold])
+
+if (length(leapq_cols_to_remove_missingness) > 0) {
+  write((leapq_cols_to_remove_missingness), "data/items_to_remove/leapq_missingness_removals.csv", ncolumns = 1)
+}
+
+leapq_missingness_removed <- leapq_unordered_removed %>%
+  select(-all_of(leapq_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/leapq_6_missing_removed.csv")
+
+
+# LHQ
+lhq_cols_to_remove_missingness <- names(lhq_na_by_col[lhq_na_by_col > removal_threshold])
+
+if (length(lhq_cols_to_remove_missingness) > 0) {
+  write((lhq_cols_to_remove_missingness), "data/items_to_remove/lhq_missingness_removals.csv", ncolumns = 1)
+}
+
+lhq_missingness_removed <- lhq_unordered_removed %>%
+  select(-all_of(lhq_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/lhq_6_missing_removed.csv")
+
+
+# LSBQ
+lsbq_cols_to_remove_missingness <- names(lsbq_na_by_col[lsbq_na_by_col > removal_threshold])
+
+if (length(lsbq_cols_to_remove_missingness) > 0) {
+  write((lsbq_cols_to_remove_missingness), "data/items_to_remove/lsbq_missingness_removals.csv", ncolumns = 1)
+}
+
+lsbq_missingness_removed <- lsbq_unordered_removed %>%
+  select(-all_of(lsbq_cols_to_remove_missingness)) %>%
+  write_csv(., "data/questionnaires/6_missing_removed/lsbq_6_missing_removed.csv")
+
+```
+
+## Apply near-zero variance threshold
+
+```{r}
+
+# identify nzv columns at 80/20 freqCut (most commong response at least 4x more frequent than any other response)
+# write nzv column names to file
+# then remove these items from the questionnaire
+
+# BDS
+bds_nzv_cols <- bds_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(bds_nzv_cols) > 0) {
+  write(bds_nzv_cols, 'data/items_to_remove/bds_nzv.csv')
+}
+
+bds_nzv_removed <- bds_missingness_removed %>%
+  select(-all_of(bds_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/bds_7_nzv_removed.csv")
+
+# BEQ
+beq_nzv_cols <- beq_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(beq_nzv_cols) > 0){
+  write(beq_nzv_cols, 'data/items_to_remove/beq_nzv.csv')
+}
+  
+beq_nzv_removed <- beq_missingness_removed %>%
+  select(-all_of(beq_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/beq_7_nzv_removed.csv")
+
+# BLP
+
+blp_nzv_cols <- blp_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(blp_nzv_cols) > 0){
+  write(blp_nzv_cols, 'data/items_to_remove/blp_nzv.csv')
+}
+
+blp_nzv_removed <- blp_missingness_removed %>%
+  select(-all_of(blp_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/blp_7_nzv_removed.csv")
+
+# BSQ
+bsq_nzv_cols <- bsq_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(bsq_nzv_cols) > 0){
+  write(bsq_nzv_cols, 'data/items_to_remove/bsq_nzv.csv')
+}
+  
+bsq_nzv_removed <- bsq_missingness_removed %>%
+  select(-all_of(bsq_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/bsq_7_nzv_removed.csv")
+
+# LEAP-Q
+leapq_nzv_cols <- leapq_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(leapq_nzv_cols) > 0){
+  write(leapq_nzv_cols, 'data/items_to_remove/leapq_nzv.csv')
+}
+  
+leapq_nzv_removed <- leapq_missingness_removed %>%
+  select(-all_of(leapq_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/leapq_7_nzv_removed.csv")
+
+# LHQ
+lhq_nzv_cols <- lhq_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(lhq_nzv_cols) > 0){
+  write(lhq_nzv_cols, 'data/items_to_remove/lhq_nzv.csv')
+}
+  
+lhq_nzv_removed <- lhq_missingness_removed %>%
+  select(-all_of(lhq_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/lhq_7_nzv_removed.csv")
+
+# LSBQ
+lsbq_nzv_cols <- lsbq_missingness_removed %>%
+  select(-id) %>%
+  nearZeroVar(., freqCut = 80/20, names = TRUE) 
+
+if(length(lsbq_nzv_cols) > 0){
+  write(lsbq_nzv_cols, 'data/items_to_remove/lsbq_nzv.csv')
+}
+  
+lsbq_nzv_removed <- lsbq_missingness_removed %>%
+  select(-all_of(lsbq_nzv_cols)) %>%
+  write_csv(., "data/questionnaires/7_nonzero_variance_removed/lsbq_7_nzv_removed.csv")
+
+```
+
+## Reverse-code AoA items
+
+Items related to age of acquisition (AoA) are reverse coded such that higher values correspond to lower AoA. This creates consistency with all other items, for which higher values mean a higher degree of bilingualism, facilitating directional interpretation of analysis outputs.
+
+WHAT ABOUT ACCENT ITEMS? Should reverse-code the L2 accent items where higher number means stronger accent.
+
+### Identify items to reverse-code
+
+There are 17 items across 5 questionnires (all but the BEQ and BSwQ) related to various aspects of age of acquisition. We reverse-code these items.
+
+There is one item in the LHQ that asks about foreign accent in L2. In this item, "extreme" foreign accent is the scale maximum. We reverse-code this item. Note that we do not reverse-code the LEAP-Q L2 accent item, which has "foreign" as the scale minimum and "native" as the maximum.
+
+```{r}
+
+# to do: look at all questionnaires here
+all_columns <- c(
+  colnames(bds_nzv_removed),
+  colnames(beq_nzv_removed),
+  colnames(blp_nzv_removed),
+  colnames(bsq_nzv_removed),
+  colnames(lhq_nzv_removed),
+  colnames(lsbq_nzv_removed),
+  colnames(leapq_nzv_removed)
+)
+
+aoa_questions <- grep("aoa", all_columns, value = TRUE)
+age_questions <- grep("age", all_columns, value = TRUE)
+
+cols_to_reverse_code_age <- c(aoa_questions, age_questions)
+
+bds_cols_to_rev_code <- cols_to_reverse_code_age[startsWith(cols_to_reverse_code_age, "bds")]
+blp_cols_to_rev_code <- cols_to_reverse_code_age[startsWith(cols_to_reverse_code_age, "blp")]
+leapq_cols_to_rev_code <- cols_to_reverse_code_age[startsWith(cols_to_reverse_code_age, "leapq")]
+lhq_cols_to_rev_code <- cols_to_reverse_code_age[startsWith(cols_to_reverse_code_age, "lhq")]
+lsbq_cols_to_rev_code <- cols_to_reverse_code_age[startsWith(cols_to_reverse_code_age, "lsbq")]
+
+cols_about_accent <- grep("accent", all_columns, value = TRUE)
+# only lhq_L2_foreign_accent_strength
+lhq_cols_to_rev_code <- c(lhq_cols_to_rev_code, "lhq_L2_foreign_accent_strength")
+```
+
+### BEQ and BSQ (nothing to reverse-code)
+
+```{r}
+
+beq_rev_coded <- beq_nzv_removed %>%
+  write_csv(., 'data/questionnaires/8_reverse_coded/beq_8_reverse_coded.csv')
+
+bsq_rev_coded <- bsq_nzv_removed %>%
+  write_csv(., 'data/questionnaires/8_reverse_coded/bsq_8_reverse_coded.csv')
+```
+
+### BDS
+
+```{r}
+
+# cols to fix:
+# "bds_aoa_L2_1"
+# "bds_age_comfortable_speaking_L2_1"
+
+# aoa item: 4 possible choices (1-4) corresponding to age ranges
+# to adjust: new_value = max - old value + min
+
+# comfort item: 4 possible values (0-4 and NA)
+# to adjust: new_value = max - old value + min
+# NA should stay NA
+
+bds_reversecoded <- bds_nzv_removed %>%
+  mutate(bds_aoa_L2_1 = 4 - bds_aoa_L2_1 + 1,
+         bds_age_comfortable_speaking_L2_1 = case_when(
+           !is.na(bds_age_comfortable_speaking_L2_1) ~ 4 - bds_age_comfortable_speaking_L2_1 + 1)) %>%
+  write_csv(., "data/questionnaires/8_reverse_coded/bds_8_reverse_coded.csv")
+```
+
+### BLP
+
+```{r}
+
+# cols to fix:
+# "blp_L2_aoa"
+# "blp_L1_age_became_comfortable"
+# "blp_L2_age_became_comfortable"
+
+# aoa question: 21 possible choices (0-20) corresponding to age
+# to adjust: new_value = max - old value + min
+
+# comfort questions: 21 possible values (1-20+ and "not yet")
+# to adjust: reverse code the numeric values as above; "not yet" stays as "NA"
+
+blp_reversecoded <- blp_nzv_removed %>%
+  mutate(blp_L2_aoa = 20 - blp_L2_aoa,
+         blp_L1_age_became_comfortable = case_when(
+           !is.na(blp_L1_age_became_comfortable) ~ 20 - blp_L1_age_became_comfortable),
+         blp_L2_age_became_comfortable = case_when(
+           !is.na(blp_L2_age_became_comfortable) ~ 20 - blp_L2_age_became_comfortable)) %>%
+  write_csv(., "data/questionnaires/8_reverse_coded/blp_8_reverse_coded.csv")
+```
+
+### LEAP-Q
+
+```{r}
+
+# cols to fix:
+# "leapq_aoa_reading_L1"
+# "leapq_age_fluency_achieved_L1" 
+# "leapq_age_reading_fluently_L1"
+# "leapq_aoa_L2"
+# "leapq_aoa_reading_L2"         
+# "leapq_age_fluency_achieved_L2"
+# "leapq_age_reading_fluently_L2"
+
+# L1 questions: 4 answers (1-4); flip as above
+
+# L2 questions: 5 answers (1-4 and NA)
+
+leapq_reversecoded <- leapq_nzv_removed %>%
+  mutate(leapq_aoa_reading_L1 = 4 - leapq_aoa_reading_L1 + 1,
+         leapq_age_fluency_achieved_L1 = 4 - leapq_age_fluency_achieved_L1 + 1,
+         leapq_age_reading_fluently_L1 = 4 - leapq_age_reading_fluently_L1 + 1,
+         leapq_aoa_L2 = case_when(
+           is.na(leapq_aoa_L2) ~ NA,
+           !is.na(leapq_aoa_L2) ~ 4 - leapq_aoa_L2 + 1),
+         leapq_aoa_reading_L2 = case_when(
+           is.na(leapq_aoa_reading_L2) ~ NA,
+           !is.na(leapq_aoa_reading_L2) ~ 4 - leapq_aoa_reading_L2 + 1),
+         leapq_age_fluency_achieved_L2 = case_when(
+           is.na(leapq_age_fluency_achieved_L2) ~ NA,
+           !is.na(leapq_age_fluency_achieved_L2) ~ 4 - leapq_age_fluency_achieved_L2 + 1),
+         leapq_age_reading_fluently_L2 = case_when(
+           is.na(leapq_age_reading_fluently_L2) ~ NA,
+           !is.na(leapq_age_reading_fluently_L2) ~ 4 - leapq_age_reading_fluently_L2 + 1)
+  ) %>%
+  write_csv(., "data/questionnaires/8_reverse_coded/leapq_8_reverse_coded.csv")
+```
+
+### LHQ
+
+```{r}
+
+# cols to fix:
+# "lhq_L2_aoa"
+# "lhq_L2_age_first_speaking"
+# "lhq_L2_age_first_reading"
+# "lhq_L2_age_first_writing"
+# "lhq_L2_foreign_accent_strength"
+
+# all aoa items have 4 options (1-4), which just need to be reversed
+# the accent question has 7 options (1-7)
+
+lhq_reversecoded <- lhq_nzv_removed %>%
+  mutate(lhq_L2_aoa = 4 - lhq_L2_aoa + 1,
+         lhq_L2_age_first_speaking = 4 - lhq_L2_age_first_speaking + 1,
+         lhq_L2_age_first_reading = 4 - lhq_L2_age_first_reading + 1,
+         lhq_L2_age_first_writing = 4 - lhq_L2_age_first_writing + 1,
+         lhq_L2_foreign_accent_strength = 7 - lhq_L2_foreign_accent_strength + 1) %>%
+  write_csv(., "data/questionnaires/8_reverse_coded/lhq_8_reverse_coded.csv")
+
+```
+
+### LSBQ
+
+```{r}
+
+# cols to fix
+# "lsbq_L2_aoa"
+
+# 1-4 ranges; reverse as above
+
+lsbq_clean_reversecoded <- lsbq_nzv_removed %>%
+  mutate(lsbq_L2_aoa = 4 - lsbq_L2_aoa + 1) %>%
+  write_csv(., "data/questionnaires/8_reverse_coded/lsbq_8_reverse_coded.csv")
+```
+
+# How many items remain after each cleaning step?
+
+## How many language items did we have after removing demographic and open-text items?
+
+```{r}
+
+ncol(bds_apriori_removal)-1
+ncol(beq_apriori_removal)-1
+ncol(blp_apriori_removal)-1
+ncol(bsq_apriori_removal)-1
+ncol(leapq_apriori_removal)-1
+ncol(lhq_apriori_removal)-1
+ncol(lsbq_apriori_removal)-1
+
+```
+
+## How many left after removing unordered factors?
+
+```{r}
+
+ncol(bds_unordered_removed)-1
+ncol(beq_unordered_removed)-1
+ncol(blp_unordered_removed)-1
+ncol(bsq_unordered_removed)-1
+ncol(leapq_unordered_removed)-1
+ncol(lhq_unordered_removed)-1
+ncol(lsbq_unordered_removed)-1
+
+```
+
+## How many left after removing items with \> 20% NA?
+
+```{r}
+
+ncol(bds_missingness_removed)-1
+ncol(beq_missingness_removed)-1
+ncol(blp_missingness_removed)-1
+ncol(bsq_missingness_removed)-1
+ncol(leapq_missingness_removed)-1
+ncol(lhq_missingness_removed)-1
+ncol(lsbq_missingness_removed)-1
+```
+
+## How many left after removing items with near-zero variance (80/20 cut)?
+
+```{r}
+
+ncol(bds_nzv_removed)-1
+ncol(beq_nzv_removed)-1
+ncol(blp_nzv_removed)-1
+ncol(bsq_nzv_removed)-1
+ncol(leapq_nzv_removed)-1
+ncol(lhq_nzv_removed)-1
+ncol(lsbq_nzv_removed)-1
+```
