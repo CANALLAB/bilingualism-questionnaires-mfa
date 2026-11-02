@@ -237,9 +237,8 @@ merged_r_and_p <- merge(df_r, df_p, by=c("Var1", "Var2")) %>%
 
 #unique(merged_r_and_p$Var1)
 
-better_names <- c("Express emotions",
+better_names <- c("Expressing emotions",
                   "Reading",
-                  "TV/radio",
                   "Praying",
                   "Internet",
                   "Movies",
@@ -385,33 +384,34 @@ write_csv(df_to_plot, "data/analysis/mfa/MFA_group_coords_2d.csv", col_names = T
 
 ```{r}
 
-palette <- natparks.pals("Halekala", n = nrow(df_to_plot_2d))
+palette <- natparks.pals("Halekala", n = nrow(df_to_plot))
 
-mfa_groups_plot <- ggplot(df_to_plot_2d, aes(
+mfa_groups_plot <- ggplot(df_to_plot, aes(
                 x = dim_1_vals,
                 y = dim_2_vals,
                 color = questionnaires,
                 label = questionnaires)) +
-  geom_point(size = 4) +
-  geom_text(vjust = -1, position = position_nudge(x = 0.04, y = -.01)) +
+  geom_point(size = 1) +
+  geom_text(vjust = -1, 
+            position = position_nudge(x = 0.04, y = -.01),
+            size = 5) +
   #geom_text_repel(nudge_x = .05) +
   scale_color_manual(values = palette) +
   ylim(0, 1) + 
   xlim(0, 1) +
-  #theme_modern() +
+  theme_modern() +
   theme(legend.position = "none") +
   labs(
     x = "Dimension 1 (Usage)",
     y = "Dimension 2 (History)",
-    color = "Questionnaire",
-    title = "MFA Group Representation: Dimensions 1 & 2"
+    color = "Questionnaire"
   )
 
-mfa_groups_plot
-
-ggsave("data/analysis/mfa/MFA_groups_overall.png",
+ggsave("data/analysis/mfa/figure_2.jpeg",
        plot = mfa_groups_plot,
-       dpi=300)
+       dpi=300,
+       width=3,
+       height=3)
 ```
 
 ## Group representation table
@@ -483,7 +483,7 @@ write_csv(factor_scores_with_ids, "data/analysis/mfa/factor_scores.csv")
 
 #fviz_contrib(mfa_results, "partial.axes",  top = 7, axes = 1)
 #fviz_contrib(mfa_results, "group", top = 7, axes = 1)
-fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 1)
+fviz_contrib(mfa_results, "quanti.var", top = 25, axes = 1)
 
 # Extract Dim.1 scores for all participants
 dim1_scores <- mfa_results$ind$coord[, "Dim.1"]
@@ -530,7 +530,7 @@ write_csv(result_df_dim1, "data/analysis/mfa/dim1_lo-hi.csv")
 
 #fviz_contrib(mfa_results, "partial.axes",  top = 7, axes = 2)
 #fviz_contrib(mfa_results, "group", top = 7, axes = 2)
-fviz_contrib(mfa_results, "quanti.var", top = 30, axes = 2)
+fviz_contrib(mfa_results, "quanti.var", top = 25, axes = 2)
 
 # Extract Dim.1 scores for all participants
 dim2_scores <- mfa_results$ind$coord[, "Dim.2"]
@@ -548,7 +548,7 @@ bottom_quartile <- dim2_scores <= q1_cutoff
 top_quartile <- dim2_scores >= q3_cutoff
 
 # Extract the dataset containing the top contributing variables
-data_matrix <- mfa_results_2$call$X # The original data used in MFA
+data_matrix <- mfa_results$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
 selected_data <- data_matrix[, top_contributors]
