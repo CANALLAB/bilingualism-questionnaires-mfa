@@ -92,3 +92,11 @@ describeBy(demog_and_language_data$blp_L2_proficiency_writing, group = demog_and
 t.test(blp_L2_proficiency_writing ~ site, data = demog_and_language_data, na.action = na.omit)
 
 ```
+
+# Questionnaire order
+
+```{r}
+
+table(participants$site, participants$questionnaire_order)
+
+```
