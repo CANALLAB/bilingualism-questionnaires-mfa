@@ -777,7 +777,9 @@ dim1_scores_order_1 <- mfa_results_order_1$ind$coord[, "Dim.1"]
 
 # get 10 columns that contribute most to dimension
 dim1_contrib_order_1 <- mfa_results_order_1$quanti.var$contrib[, "Dim.1"]
-top_contributors_order_1 <- names(sort(dim1_contrib_order_1, decreasing = TRUE))[1:10]
+top_contributors_order_1 <- sort(dim1_contrib_order_1, decreasing = TRUE)
+top_contributors_order_1_values <- unname(top_contributors_order_1)[1:10]
+top_contributors_order_1_names <- names(top_contributors_order_1)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_order_1 <- quantile(dim1_scores_order_1, 0.25) # Bottom quartile
@@ -791,7 +793,7 @@ top_quartile_order_1 <- dim1_scores_order_1 >= q3_cutoff_order_1
 data_matrix_order_1 <- mfa_results_order_1$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_order_1 <- data_matrix_order_1[, top_contributors_order_1]
+selected_data_order_1 <- data_matrix_order_1[, top_contributors_order_1_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_order_1 <- colMeans(selected_data_order_1[bottom_quartile_order_1, , drop = FALSE], na.rm = TRUE)
@@ -799,7 +801,8 @@ means_top_order_1 <- colMeans(selected_data_order_1[top_quartile_order_1, , drop
 
 # Create a dataframe
 result_df_dim1_order_1 <- data.frame(
-  Variable = top_contributors_order_1,
+  Variable = top_contributors_order_1_names,
+  Contribution = round(top_contributors_order_1_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_order_1, 2),
   Mean_Top_Quartile = round(means_top_order_1, 2)
 )
@@ -819,7 +822,9 @@ dim1_scores_order_2 <- mfa_results_order_2$ind$coord[, "Dim.1"]
 
 # get 10 columns that contribute most to dimension
 dim1_contrib_order_2 <- mfa_results_order_2$quanti.var$contrib[, "Dim.1"]
-top_contributors_order_2 <- names(sort(dim1_contrib_order_2, decreasing = TRUE))[1:10]
+top_contributors_order_2 <- sort(dim1_contrib_order_2, decreasing = TRUE)
+top_contributors_order_2_values <- unname(top_contributors_order_2)[1:10]
+top_contributors_order_2_names <- names(top_contributors_order_2)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_order_2 <- quantile(dim1_scores_order_2, 0.25) # Bottom quartile
@@ -833,7 +838,7 @@ top_quartile_order_2 <- dim1_scores_order_2 >= q3_cutoff_order_2
 data_matrix_order_2 <- mfa_results_order_2$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_order_2 <- data_matrix_order_2[, top_contributors_order_2]
+selected_data_order_2 <- data_matrix_order_2[, top_contributors_order_2_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_order_2 <- colMeans(selected_data_order_2[bottom_quartile_order_2, , drop = FALSE], na.rm = TRUE)
@@ -841,7 +846,8 @@ means_top_order_2 <- colMeans(selected_data_order_2[top_quartile_order_2, , drop
 
 # Create a dataframe
 result_df_dim1_order_2 <- data.frame(
-  Variable = top_contributors_order_2,
+  Variable = top_contributors_order_2_names,
+  Contribution = round(top_contributors_order_2_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_order_2, 2),
   Mean_Top_Quartile = round(means_top_order_2, 2)
 )
@@ -858,12 +864,14 @@ write_csv(result_df_dim1_order_2, "data/analysis/mfa/dim1_lo-hi_order_2.csv")
 
 ```{r}
 
-# Extract Dim.2 scores for all participants
+# Extract Dim.1 scores for all participants
 dim2_scores_order_1 <- mfa_results_order_1$ind$coord[, "Dim.2"]
 
 # get 10 columns that contribute most to dimension
 dim2_contrib_order_1 <- mfa_results_order_1$quanti.var$contrib[, "Dim.2"]
-top_contributors_order_1 <- names(sort(dim2_contrib_order_1, decreasing = TRUE))[1:10]
+top_contributors_order_1 <- sort(dim2_contrib_order_1, decreasing = TRUE)
+top_contributors_order_1_values <- unname(top_contributors_order_1)[1:10]
+top_contributors_order_1_names <- names(top_contributors_order_1)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_order_1 <- quantile(dim2_scores_order_1, 0.25) # Bottom quartile
@@ -877,7 +885,7 @@ top_quartile_order_1 <- dim2_scores_order_1 >= q3_cutoff_order_1
 data_matrix_order_1 <- mfa_results_order_1$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_order_1 <- data_matrix_order_1[, top_contributors_order_1]
+selected_data_order_1 <- data_matrix_order_1[, top_contributors_order_1_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_order_1 <- colMeans(selected_data_order_1[bottom_quartile_order_1, , drop = FALSE], na.rm = TRUE)
@@ -885,7 +893,8 @@ means_top_order_1 <- colMeans(selected_data_order_1[top_quartile_order_1, , drop
 
 # Create a dataframe
 result_df_dim2_order_1 <- data.frame(
-  Variable = top_contributors_order_1,
+  Variable = top_contributors_order_1_names,
+  Contribution = round(top_contributors_order_1_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_order_1, 2),
   Mean_Top_Quartile = round(means_top_order_1, 2)
 )
@@ -905,7 +914,9 @@ dim2_scores_order_2 <- mfa_results_order_2$ind$coord[, "Dim.2"]
 
 # get 10 columns that contribute most to dimension
 dim2_contrib_order_2 <- mfa_results_order_2$quanti.var$contrib[, "Dim.2"]
-top_contributors_order_2 <- names(sort(dim2_contrib_order_2, decreasing = TRUE))[1:10]
+top_contributors_order_2 <- sort(dim2_contrib_order_2, decreasing = TRUE)
+top_contributors_order_2_values <- unname(top_contributors_order_2)[1:10]
+top_contributors_order_2_names <- names(top_contributors_order_2)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_order_2 <- quantile(dim2_scores_order_2, 0.25) # Bottom quartile
@@ -919,7 +930,7 @@ top_quartile_order_2 <- dim2_scores_order_2 >= q3_cutoff_order_2
 data_matrix_order_2 <- mfa_results_order_2$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_order_2 <- data_matrix_order_2[, top_contributors_order_2]
+selected_data_order_2 <- data_matrix_order_2[, top_contributors_order_2_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_order_2 <- colMeans(selected_data_order_2[bottom_quartile_order_2, , drop = FALSE], na.rm = TRUE)
@@ -927,7 +938,8 @@ means_top_order_2 <- colMeans(selected_data_order_2[top_quartile_order_2, , drop
 
 # Create a dataframe
 result_df_dim2_order_2 <- data.frame(
-  Variable = top_contributors_order_2,
+  Variable = top_contributors_order_2_names,
+  Contribution = round(top_contributors_order_2_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_order_2, 2),
   Mean_Top_Quartile = round(means_top_order_2, 2)
 )
@@ -1144,7 +1156,9 @@ dim1_scores_site_carleton <- mfa_results_site_carleton$ind$coord[, "Dim.1"]
 
 # get 10 columns that contribute most to dimension
 dim1_contrib_site_carleton <- mfa_results_site_carleton$quanti.var$contrib[, "Dim.1"]
-top_contributors_site_carleton <- names(sort(dim1_contrib_site_carleton, decreasing = TRUE))[1:10]
+top_contributors_site_carleton <- sort(dim1_contrib_site_carleton, decreasing = TRUE)
+top_contributors_site_carleton_values <- unname(top_contributors_site_carleton)[1:10]
+top_contributors_site_carleton_names <- names(top_contributors_site_carleton)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_site_carleton <- quantile(dim1_scores_site_carleton, 0.25) # Bottom quartile
@@ -1158,7 +1172,7 @@ top_quartile_site_carleton <- dim1_scores_site_carleton >= q3_cutoff_site_carlet
 data_matrix_site_carleton <- mfa_results_site_carleton$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_site_carleton <- data_matrix_site_carleton[, top_contributors_site_carleton]
+selected_data_site_carleton <- data_matrix_site_carleton[, top_contributors_site_carleton_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_site_carleton <- colMeans(selected_data_site_carleton[bottom_quartile_site_carleton, , drop = FALSE], na.rm = TRUE)
@@ -1166,7 +1180,8 @@ means_top_site_carleton <- colMeans(selected_data_site_carleton[top_quartile_sit
 
 # Create a dataframe
 result_df_dim1_site_carleton <- data.frame(
-  Variable = top_contributors_site_carleton,
+  Variable = top_contributors_site_carleton_names,
+  Contribution = round(top_contributors_site_carleton_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_site_carleton, 2),
   Mean_Top_Quartile = round(means_top_site_carleton, 2)
 )
@@ -1186,7 +1201,9 @@ dim1_scores_site_uottawa <- mfa_results_site_uottawa$ind$coord[, "Dim.1"]
 
 # get 10 columns that contribute most to dimension
 dim1_contrib_site_uottawa <- mfa_results_site_uottawa$quanti.var$contrib[, "Dim.1"]
-top_contributors_site_uottawa <- names(sort(dim1_contrib_site_uottawa, decreasing = TRUE))[1:10]
+top_contributors_site_uottawa <- sort(dim1_contrib_site_uottawa, decreasing = TRUE)
+top_contributors_site_uottawa_values <- unname(top_contributors_site_uottawa)[1:10]
+top_contributors_site_uottawa_names <- names(top_contributors_site_uottawa)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_site_uottawa <- quantile(dim1_scores_site_uottawa, 0.25) # Bottom quartile
@@ -1200,7 +1217,7 @@ top_quartile_site_uottawa <- dim1_scores_site_uottawa >= q3_cutoff_site_uottawa
 data_matrix_site_uottawa <- mfa_results_site_uottawa$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_site_uottawa <- data_matrix_site_uottawa[, top_contributors_site_uottawa]
+selected_data_site_uottawa <- data_matrix_site_uottawa[, top_contributors_site_uottawa_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_site_uottawa <- colMeans(selected_data_site_uottawa[bottom_quartile_site_uottawa, , drop = FALSE], na.rm = TRUE)
@@ -1208,7 +1225,8 @@ means_top_site_uottawa <- colMeans(selected_data_site_uottawa[top_quartile_site_
 
 # Create a dataframe
 result_df_dim1_site_uottawa <- data.frame(
-  Variable = top_contributors_site_uottawa,
+  Variable = top_contributors_site_uottawa_names,
+  Contribution = round(top_contributors_site_uottawa_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_site_uottawa, 2),
   Mean_Top_Quartile = round(means_top_site_uottawa, 2)
 )
@@ -1230,7 +1248,9 @@ dim2_scores_site_carleton <- mfa_results_site_carleton$ind$coord[, "Dim.2"]
 
 # get 10 columns that contribute most to dimension
 dim2_contrib_site_carleton <- mfa_results_site_carleton$quanti.var$contrib[, "Dim.2"]
-top_contributors_site_carleton <- names(sort(dim2_contrib_site_carleton, decreasing = TRUE))[1:10]
+top_contributors_site_carleton <- sort(dim2_contrib_site_carleton, decreasing = TRUE)
+top_contributors_site_carleton_values <- unname(top_contributors_site_carleton)[1:10]
+top_contributors_site_carleton_names <- names(top_contributors_site_carleton)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_site_carleton <- quantile(dim2_scores_site_carleton, 0.25) # Bottom quartile
@@ -1244,7 +1264,7 @@ top_quartile_site_carleton <- dim2_scores_site_carleton >= q3_cutoff_site_carlet
 data_matrix_site_carleton <- mfa_results_site_carleton$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_site_carleton <- data_matrix_site_carleton[, top_contributors_site_carleton]
+selected_data_site_carleton <- data_matrix_site_carleton[, top_contributors_site_carleton_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_site_carleton <- colMeans(selected_data_site_carleton[bottom_quartile_site_carleton, , drop = FALSE], na.rm = TRUE)
@@ -1252,7 +1272,8 @@ means_top_site_carleton <- colMeans(selected_data_site_carleton[top_quartile_sit
 
 # Create a dataframe
 result_df_dim2_site_carleton <- data.frame(
-  Variable = top_contributors_site_carleton,
+  Variable = top_contributors_site_carleton_names,
+  Contribution = round(top_contributors_site_carleton_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_site_carleton, 2),
   Mean_Top_Quartile = round(means_top_site_carleton, 2)
 )
@@ -1272,7 +1293,9 @@ dim2_scores_site_uottawa <- mfa_results_site_uottawa$ind$coord[, "Dim.2"]
 
 # get 10 columns that contribute most to dimension
 dim2_contrib_site_uottawa <- mfa_results_site_uottawa$quanti.var$contrib[, "Dim.2"]
-top_contributors_site_uottawa <- names(sort(dim2_contrib_site_uottawa, decreasing = TRUE))[1:10]
+top_contributors_site_uottawa <- sort(dim2_contrib_site_uottawa, decreasing = TRUE)
+top_contributors_site_uottawa_values <- unname(top_contributors_site_uottawa)[1:10]
+top_contributors_site_uottawa_names <- names(top_contributors_site_uottawa)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff_site_uottawa <- quantile(dim2_scores_site_uottawa, 0.25) # Bottom quartile
@@ -1286,7 +1309,7 @@ top_quartile_site_uottawa <- dim2_scores_site_uottawa >= q3_cutoff_site_uottawa
 data_matrix_site_uottawa <- mfa_results_site_uottawa$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data_site_uottawa <- data_matrix_site_uottawa[, top_contributors_site_uottawa]
+selected_data_site_uottawa <- data_matrix_site_uottawa[, top_contributors_site_uottawa_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom_site_uottawa <- colMeans(selected_data_site_uottawa[bottom_quartile_site_uottawa, , drop = FALSE], na.rm = TRUE)
@@ -1294,7 +1317,8 @@ means_top_site_uottawa <- colMeans(selected_data_site_uottawa[top_quartile_site_
 
 # Create a dataframe
 result_df_dim2_site_uottawa <- data.frame(
-  Variable = top_contributors_site_uottawa,
+  Variable = top_contributors_site_uottawa_names,
+  Contribution = round(top_contributors_site_uottawa_values, 2),
   Mean_Bottom_Quartile = round(means_bottom_site_uottawa, 2),
   Mean_Top_Quartile = round(means_top_site_uottawa, 2)
 )
