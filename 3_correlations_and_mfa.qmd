@@ -490,7 +490,9 @@ dim1_scores <- mfa_results$ind$coord[, "Dim.1"]
 
 # get 10 columns that contribute most to dimension
 dim1_contrib <- mfa_results$quanti.var$contrib[, "Dim.1"]
-top_contributors <- names(sort(dim1_contrib, decreasing = TRUE))[1:10]
+dim1_contrib_ordered <- sort(dim1_contrib, decreasing = TRUE)
+top_contributors_dim1_values <- unname(dim1_contrib_ordered)[1:10]
+top_contributors_dim1_names <- names(dim1_contrib_ordered)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff <- quantile(dim1_scores, 0.25) # Bottom quartile
@@ -504,7 +506,7 @@ top_quartile <- dim1_scores >= q3_cutoff
 data_matrix <- mfa_results$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data <- data_matrix[, top_contributors]
+selected_data <- data_matrix[, top_contributors_dim1_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom <- colMeans(selected_data[bottom_quartile, , drop = FALSE], na.rm = TRUE)
@@ -512,7 +514,8 @@ means_top <- colMeans(selected_data[top_quartile, , drop = FALSE], na.rm = TRUE)
 
 # Create a dataframe
 result_df_dim1 <- data.frame(
-  Variable = top_contributors,
+  Variable = top_contributors_dim1_names,
+  Contribution = round(top_contributors_dim1_values, 2),
   Mean_Bottom_Quartile = round(means_bottom, 2),
   Mean_Top_Quartile = round(means_top, 2)
 )
@@ -537,7 +540,9 @@ dim2_scores <- mfa_results$ind$coord[, "Dim.2"]
 
 # get 10 columns that contribute most to dimension
 dim2_contrib <- mfa_results$quanti.var$contrib[, "Dim.2"]
-top_contributors <- names(sort(dim2_contrib, decreasing = TRUE))[1:10]
+dim2_contrib_ordered <- sort(dim2_contrib, decreasing = TRUE)
+top_contributors_dim2_values <- unname(dim2_contrib_ordered)[1:10]
+top_contributors_dim2_names <- names(dim2_contrib_ordered)[1:10]
 
 # Determine quartile cutoffs
 q1_cutoff <- quantile(dim2_scores, 0.25) # Bottom quartile
@@ -551,7 +556,7 @@ top_quartile <- dim2_scores >= q3_cutoff
 data_matrix <- mfa_results$call$X # The original data used in MFA
 
 # Select only the columns corresponding to top contributors
-selected_data <- data_matrix[, top_contributors]
+selected_data <- data_matrix[, top_contributors_dim2_names]
 
 # Compute mean values for top and bottom quartile groups
 means_bottom <- colMeans(selected_data[bottom_quartile, , drop = FALSE], na.rm = TRUE)
@@ -559,7 +564,8 @@ means_top <- colMeans(selected_data[top_quartile, , drop = FALSE], na.rm = TRUE)
 
 # Create a dataframe
 result_df_dim2 <- data.frame(
-  Variable = top_contributors,
+  Variable = top_contributors_dim2_names,
+  Contribution = round(top_contributors_dim2_values, 2),
   Mean_Bottom_Quartile = round(means_bottom, 2),
   Mean_Top_Quartile = round(means_top, 2)
 )
