@@ -384,34 +384,94 @@ write_csv(df_to_plot, "data/analysis/mfa/MFA_group_coords_2d.csv", col_names = T
 
 ```{r}
 
-palette <- natparks.pals("Halekala", n = nrow(df_to_plot))
+palette = natparks.pals("DeathValley", n = 7)
+q_levels <- sort(unique(as.character(df_to_plot$questionnaires)))
+# Shape palette
+shapes <- c(15, 16, 17, 18, 3, 4, 8)
 
-mfa_groups_plot <- ggplot(df_to_plot, aes(
-                x = dim_1_vals,
-                y = dim_2_vals,
-                color = questionnaires,
-                label = questionnaires)) +
-  geom_point(size = 1) +
-  geom_text(vjust = -1, 
-            position = position_nudge(x = 0.04, y = -.01),
-            size = 5 ) +
-  #geom_text_repel(nudge_x = .05) +
-  scale_color_manual(values = palette) +
-  ylim(0, 1) + 
-  xlim(0, 1) +
-  theme_modern() +
-  theme(legend.position = "none") +
+mfa_groups_plot <- ggplot(
+  df_to_plot,
+  aes(
+    x = dim_1_vals,
+    y = dim_2_vals,
+    color = questionnaires,
+    shape = questionnaires
+  )
+) +
+  geom_point(size = 2.2, stroke = 0.6) +
+  scale_color_manual(
+    values = palette,
+    limits = q_levels,
+    name = ""
+  ) +
+  scale_shape_manual(
+    values = shapes,
+    limits = q_levels,
+    name = ""
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1)
+  ) +
+  #theme_modern() +
+  theme_classic() +
   labs(
     x = "Dimension 1 (Usage)",
-    y = "Dimension 2 (History)",
-    color = "Questionnaire"
+    y = "Dimension 2 (History)"
+  ) +
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 2.2)
+    )
+  ) +
+  theme(
+    # Overall text
+    text = element_text(size = 15),
+
+    # Axis titles
+    axis.title.x = element_text(
+      size = 15,
+      margin = margin(t = 2, unit = "pt")
+    ),
+    axis.title.y = element_text(
+      size = 15,
+      margin = margin(r = 2, unit = "pt")
+    ),
+
+    # Axis tick labels
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+
+    # Legend
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.box = "vertical",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.key.size = unit(0.5, "cm"),
+    legend.spacing.y = unit(0, "pt"),
+    legend.margin = margin(3, 3, 3, 3),
+
+    # Border around legend
+    legend.box.background = element_rect(
+      color = "#999999",
+      fill = "white",
+      linewidth = 0
+    ),
+    legend.background = element_blank()
+  ) +
+  theme(
+    axis.ticks.length.x = unit(3, "pt"),
+    axis.ticks.length.y = unit(3, "pt")
   )
 
-ggsave("data/analysis/mfa/figure_2.jpeg",
-       plot = mfa_groups_plot,
-       dpi=300,
-       width=3,
-       height=3)
+ggsave(
+  "data/analysis/mfa/figure_2.jpeg",
+  plot = mfa_groups_plot,
+  dpi = 300,
+  width = 3,
+  height = 2.25
+)
 ```
 
 ## Group representation table
@@ -687,34 +747,97 @@ dim_2_vals_order_1 <- c(coords_order_1[1,2],
 df_to_plot_order_1 <- data.frame(questionnaires, dim_1_vals_order_1, dim_2_vals_order_1)
 write_csv(df_to_plot_order_1, "data/analysis/mfa/MFA_group_coords_2d_order_1.csv", col_names = TRUE)
 
-palette <- natparks.pals("Halekala", n = nrow(df_to_plot_order_1))
+palette = natparks.pals("DeathValley", n = 7)
+q_levels <- sort(unique(as.character(df_to_plot_order_1$questionnaires)))
+# Shape palette
+shapes <- c(15, 16, 17, 18, 3, 4, 8)
 
-mfa_groups_plot_order_1 <- ggplot(df_to_plot_order_1, aes(
-                x = dim_1_vals_order_1,
-                y = dim_2_vals_order_1,
-                color = questionnaires,
-                label = questionnaires)) +
-  geom_point(size = 0.5) +
-  geom_text(vjust = 1, 
-            position = position_nudge(x = 0.0, y = 0.04),
-            size = 3  ) +
-  #geom_text_repel(nudge_x = .05) +
-  scale_color_manual(values = palette) +
-  ylim(0, 1) + 
-  xlim(0, 1) +
-  theme_modern() +
-  theme(legend.position = "none") +
+#################
+
+
+mfa_groups_plot_order_1 <- ggplot(
+  df_to_plot_order_1, 
+  aes(
+    x = dim_1_vals_order_1,
+    y = dim_2_vals_order_1,
+    color = questionnaires,
+    shape = questionnaires
+  )
+) +
+  geom_point(size = 2.2, stroke = 0.6) +
+  scale_color_manual(
+    values = palette,
+    limits = q_levels,
+    name = ""
+  ) +
+  scale_shape_manual(
+    values = shapes,
+    limits = q_levels,
+    name = ""
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1)
+  ) +
+  #theme_modern() +
+  theme_classic() +
   labs(
     x = "Dimension 1 (Usage)",
-    y = "Dimension 2 (History)",
-    color = "Questionnaire"
+    y = "Dimension 2 (History)"
+  ) +
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 2.2)
+    )
+  ) +
+  theme(
+    # Overall text
+    text = element_text(size = 15),
+
+    # Axis titles
+    axis.title.x = element_text(
+      size = 15,
+      margin = margin(t = 2, unit = "pt")
+    ),
+    axis.title.y = element_text(
+      size = 15,
+      margin = margin(r = 2, unit = "pt")
+    ),
+
+    # Axis tick labels
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+
+    # Legend
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.box = "vertical",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.key.size = unit(0.5, "cm"),
+    legend.spacing.y = unit(0, "pt"),
+    legend.margin = margin(3, 3, 3, 3),
+
+    # Border around legend
+    legend.box.background = element_rect(
+      color = "#999999",
+      fill = "white",
+      linewidth = 0
+    ),
+    legend.background = element_blank()
+  ) +
+  theme(
+    axis.ticks.length.x = unit(3, "pt"),
+    axis.ticks.length.y = unit(3, "pt")
   )
 
-ggsave("data/analysis/mfa/figure_S3A.jpeg",
-       plot = mfa_groups_plot_order_1,
-       dpi=400,
-       width=2,
-       height=2)
+ggsave(
+  "data/analysis/mfa/figure_S3A.jpeg",
+  plot = mfa_groups_plot_order_1,
+  dpi = 300,
+  width = 3,
+  height = 2.25
+)
 ```
 
 #### Order 2
@@ -742,34 +865,97 @@ dim_2_vals_order_2 <- c(coords_order_2[1,2],
 df_to_plot_order_2 <- data.frame(questionnaires, dim_1_vals_order_2, dim_2_vals_order_2)
 write_csv(df_to_plot_order_2, "data/analysis/mfa/MFA_group_coords_2d_order_2.csv", col_names = TRUE)
 
-palette <- natparks.pals("Halekala", n = nrow(df_to_plot_order_2))
+palette = natparks.pals("DeathValley", n = 7)
+q_levels <- sort(unique(as.character(df_to_plot_order_2$questionnaires)))
+# Shape palette
+shapes <- c(15, 16, 17, 18, 3, 4, 8)
 
-mfa_groups_plot_order_2 <- ggplot(df_to_plot_order_2, aes(
-                x = dim_1_vals_order_2,
-                y = dim_2_vals_order_2,
-                color = questionnaires,
-                label = questionnaires)) +
-  geom_point(size = .5) +
-  geom_text(vjust = 1, 
-            position = position_nudge(x = 0.0, y = 0.04),
-            size = 4 ) +
-  #geom_text_repel(nudge_x = .05) +
-  scale_color_manual(values = palette) +
-  ylim(0, 1) + 
-  xlim(0, 1) +
-  theme_modern() +
-  theme(legend.position = "none") +
+#################
+
+
+mfa_groups_plot_order_2 <- ggplot(
+  df_to_plot_order_2, 
+  aes(
+    x = dim_1_vals_order_2,
+    y = dim_2_vals_order_2,
+    color = questionnaires,
+    shape = questionnaires
+  )
+) +
+  geom_point(size = 2.2, stroke = 0.6) +
+  scale_color_manual(
+    values = palette,
+    limits = q_levels,
+    name = ""
+  ) +
+  scale_shape_manual(
+    values = shapes,
+    limits = q_levels,
+    name = ""
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1)
+  ) +
+  #theme_modern() +
+  theme_classic() +
   labs(
     x = "Dimension 1 (Usage)",
-    y = "Dimension 2 (History)",
-    color = "Questionnaire"
+    y = "Dimension 2 (History)"
+  ) +
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 2.2)
+    )
+  ) +
+  theme(
+    # Overall text
+    text = element_text(size = 15),
+
+    # Axis titles
+    axis.title.x = element_text(
+      size = 15,
+      margin = margin(t = 2, unit = "pt")
+    ),
+    axis.title.y = element_text(
+      size = 15,
+      margin = margin(r = 2, unit = "pt")
+    ),
+
+    # Axis tick labels
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+
+    # Legend
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.box = "vertical",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.key.size = unit(0.5, "cm"),
+    legend.spacing.y = unit(0, "pt"),
+    legend.margin = margin(3, 3, 3, 3),
+
+    # Border around legend
+    legend.box.background = element_rect(
+      color = "#999999",
+      fill = "white",
+      linewidth = 0
+    ),
+    legend.background = element_blank()
+  ) +
+  theme(
+    axis.ticks.length.x = unit(3, "pt"),
+    axis.ticks.length.y = unit(3, "pt")
   )
 
-ggsave("data/analysis/mfa/figure_S3B.jpeg",
-       plot = mfa_groups_plot_order_2,
-       dpi=400,
-       width=2,
-       height=2)
+ggsave(
+  "data/analysis/mfa/figure_S3B.jpeg",
+  plot = mfa_groups_plot_order_2,
+  dpi = 300,
+  width = 3,
+  height = 2.25
+)
 ```
 
 ### Characterize dimension 1
@@ -1066,34 +1252,97 @@ dim_2_vals_site_carleton <- c(coords_site_carleton[1,2],
 df_to_plot_site_carleton <- data.frame(questionnaires, dim_1_vals_site_carleton, dim_2_vals_site_carleton)
 write_csv(df_to_plot_site_carleton, "data/analysis/mfa/MFA_group_coords_2d_site_carleton.csv", col_names = TRUE)
 
-palette <- natparks.pals("Halekala", n = nrow(df_to_plot_site_carleton))
+palette = natparks.pals("DeathValley", n = 7)
+q_levels <- sort(unique(as.character(df_to_plot_site_carleton$questionnaires)))
+# Shape palette
+shapes <- c(15, 16, 17, 18, 3, 4, 8)
 
-mfa_groups_plot_site_carleton <- ggplot(df_to_plot_site_carleton, aes(
-                x = dim_1_vals_site_carleton,
-                y = dim_2_vals_site_carleton,
-                color = questionnaires,
-                label = questionnaires)) +
-  geom_point(size = .5) +
-  geom_text(vjust = 1, 
-            position = position_nudge(x = 0.0, y = 0.04),
-            size = 3 ) +
-  #geom_text_repel(nudge_x = .01) +
-  scale_color_manual(values = palette) +
-  ylim(0, 1) + 
-  xlim(0, 1) +
-  theme_modern() +
-  theme(legend.position = "none") +
+#################
+
+
+mfa_groups_plot_site_carleton <- ggplot(
+  df_to_plot_site_carleton, 
+  aes(
+    x = dim_1_vals_site_carleton,
+    y = dim_2_vals_site_carleton,
+    color = questionnaires,
+    shape = questionnaires
+  )
+) +
+  geom_point(size = 2.2, stroke = 0.6) +
+  scale_color_manual(
+    values = palette,
+    limits = q_levels,
+    name = ""
+  ) +
+  scale_shape_manual(
+    values = shapes,
+    limits = q_levels,
+    name = ""
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1)
+  ) +
+  #theme_modern() +
+  theme_classic() +
   labs(
     x = "Dimension 1 (Usage)",
-    y = "Dimension 2 (History)",
-    color = "Questionnaire"
+    y = "Dimension 2 (History)"
+  ) +
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 2.2)
+    )
+  ) +
+  theme(
+    # Overall text
+    text = element_text(size = 15),
+
+    # Axis titles
+    axis.title.x = element_text(
+      size = 15,
+      margin = margin(t = 2, unit = "pt")
+    ),
+    axis.title.y = element_text(
+      size = 15,
+      margin = margin(r = 2, unit = "pt")
+    ),
+
+    # Axis tick labels
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+
+    # Legend
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.box = "vertical",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.key.size = unit(0.5, "cm"),
+    legend.spacing.y = unit(0, "pt"),
+    legend.margin = margin(3, 3, 3, 3),
+
+    # Border around legend
+    legend.box.background = element_rect(
+      color = "#999999",
+      fill = "white",
+      linewidth = 0
+    ),
+    legend.background = element_blank()
+  ) +
+  theme(
+    axis.ticks.length.x = unit(3, "pt"),
+    axis.ticks.length.y = unit(3, "pt")
   )
 
-ggsave("data/analysis/mfa/figure_S4A.jpeg",
-       plot = mfa_groups_plot_site_carleton,
-       dpi=400,
-       width=2,
-       height=2)
+ggsave(
+  "data/analysis/mfa/figure_S4A.jpeg",
+  plot = mfa_groups_plot_site_carleton,
+  dpi = 300,
+  width = 3,
+  height = 2.25
+)
 ```
 
 #### uOttawa
@@ -1121,34 +1370,97 @@ dim_2_vals_site_uottawa <- c(coords_site_uottawa[1,2],
 df_to_plot_site_uottawa <- data.frame(questionnaires, dim_1_vals_site_uottawa, dim_2_vals_site_uottawa)
 write_csv(df_to_plot_site_uottawa, "data/analysis/mfa/MFA_group_coords_2d_site_uottawa.csv", col_names = TRUE)
 
-palette <- natparks.pals("Halekala", n = nrow(df_to_plot_site_uottawa))
+palette = natparks.pals("DeathValley", n = 7)
+q_levels <- sort(unique(as.character(df_to_plot_site_uottawa$questionnaires)))
+# Shape palette
+shapes <- c(15, 16, 17, 18, 3, 4, 8)
 
-mfa_groups_plot_site_uottawa <- ggplot(df_to_plot_site_uottawa, aes(
-                x = dim_1_vals_site_uottawa,
-                y = dim_2_vals_site_uottawa,
-                color = questionnaires,
-                label = questionnaires)) +
-  geom_point(size = .5) +
-  geom_text(vjust = 1, 
-            position = position_nudge(x = 0.0, y = .04),
-            size = 3 ) +
-  #geom_text_repel(nudge_x = .05) +
-  scale_color_manual(values = palette) +
-  ylim(0, 1) + 
-  xlim(0, 1) +
-  theme_modern() +
-  theme(legend.position = "none") +
+#################
+
+
+mfa_groups_plot_site_uottawa <- ggplot(
+  df_to_plot_site_uottawa, 
+  aes(
+    x = dim_1_vals_site_uottawa,
+    y = dim_2_vals_site_uottawa,
+    color = questionnaires,
+    shape = questionnaires
+  )
+) +
+  geom_point(size = 2.2, stroke = 0.6) +
+  scale_color_manual(
+    values = palette,
+    limits = q_levels,
+    name = ""
+  ) +
+  scale_shape_manual(
+    values = shapes,
+    limits = q_levels,
+    name = ""
+  ) +
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1)
+  ) +
+  #theme_modern() +
+  theme_classic() +
   labs(
     x = "Dimension 1 (Usage)",
-    y = "Dimension 2 (History)",
-    color = "Questionnaire"
+    y = "Dimension 2 (History)"
+  ) +
+  guides(
+    color = guide_legend(
+      override.aes = list(size = 2.2)
+    )
+  ) +
+  theme(
+    # Overall text
+    text = element_text(size = 15),
+
+    # Axis titles
+    axis.title.x = element_text(
+      size = 15,
+      margin = margin(t = 2, unit = "pt")
+    ),
+    axis.title.y = element_text(
+      size = 15,
+      margin = margin(r = 2, unit = "pt")
+    ),
+
+    # Axis tick labels
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+
+    # Legend
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.box = "vertical",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.key.size = unit(0.5, "cm"),
+    legend.spacing.y = unit(0, "pt"),
+    legend.margin = margin(3, 3, 3, 3),
+
+    # Border around legend
+    legend.box.background = element_rect(
+      color = "#999999",
+      fill = "white",
+      linewidth = 0
+    ),
+    legend.background = element_blank()
+  ) +
+  theme(
+    axis.ticks.length.x = unit(3, "pt"),
+    axis.ticks.length.y = unit(3, "pt")
   )
 
-ggsave("data/analysis/mfa/figure_S4B.jpeg",
-       plot = mfa_groups_plot_site_uottawa,
-       dpi=400,
-       width=2,
-       height=2)
+ggsave(
+  "data/analysis/mfa/figure_S4B.jpeg",
+  plot = mfa_groups_plot_site_uottawa,
+  dpi = 300,
+  width = 3,
+  height = 2.25
+)
 ```
 
 ### Characterize dimension 1
